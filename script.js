@@ -590,7 +590,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         try {
             new QRCode(qrContainer, {
-                text: currentUrl,
+                text: "https://seudominio.com.br",
                 width: 256,
                 height: 256,
                 colorDark: "#10b981",
