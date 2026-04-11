@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Pagamento | Inês Raquel</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="pagamento-cliente.css">
+    <link rel="icon" type="image/png" href="./assets/Nutri-icon.png">
+</head>
+
+<body>
+    <div class="payment-container">
+        <div class="payment-card">
+            <div class="payment-header">
+                <img src="./assets/Nutri-perfil.jpg" alt="Logo" class="payment-logo">
+                <h1>Inês Raquel - Nutri</h1>
+                <p>Finalize seu pagamento de forma rápida e segura</p>
+            </div>
+
+            <div class="payment-info" id="paymentInfo">
+                <div class="info-row">
+                    <span class="label">Cliente:</span>
+                    <span class="value" id="clienteNome">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">Plano:</span>
+                    <span class="value" id="servicoNome">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">Nutricionista:</span>
+                    <span class="value" id="profissionalNome">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">Data:</span>
+                    <span class="value" id="agendamentoData">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">Horário:</span>
+                    <span class="value" id="agendamentoHorario">-</span>
+                </div>
+                <div class="info-row total">
+                    <span class="label">Valor Total:</span>
+                    <span class="value" id="valorTotal">R$ 0,00</span>
+                </div>
+            </div>
+
+            <div class="payment-methods">
+                <h3>Escolha a forma de pagamento</h3>
+                <div class="methods-grid">
+                    <div class="method-card" data-method="pix">
+                        <i class="fa-solid fa-qrcode"></i>
+                        <span>Pix</span>
+                        <small>Instantâneo</small>
+                    </div>
+                    <div class="method-card" data-method="cartao_credito">
+                        <i class="fa-regular fa-credit-card"></i>
+                        <span>Cartão Crédito</span>
+                        <small>Até 12x</small>
+                    </div>
+                    <div class="method-card" data-method="cartao_debito">
+                        <i class="fa-solid fa-credit-card"></i>
+                        <span>Cartão Débito</span>
+                        <small>À vista</small>
+                    </div>
+                    <div class="method-card" data-method="dinheiro">
+                        <i class="fa-solid fa-money-bill-wave"></i>
+                        <span>Dinheiro</span>
+                        <small>À vista</small>
+                    </div>
+                </div>
+            </div>
+
+            <div id="pixSection" class="pix-section" style="display: none;">
+                <div class="pix-qr">
+                    <div id="qrcode"></div>
+                    <div class="pix-code">
+                        <p>Código Pix Copia e Cola</p>
+                        <div class="code-box" id="pixCode">Carregando código Pix...</div>
+                        <button id="copyPixCode" class="btn-copy">
+                            <i class="fa-regular fa-copy"></i> Copiar código
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="cartaoSection" class="cartao-section" style="display: none;">
+                <div class="cartao-form">
+                    <div class="form-group">
+                        <label>Número do Cartão</label>
+                        <input type="text" id="cardNumber" placeholder="0000 0000 0000 0000" maxlength="19">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Validade</label>
+                            <input type="text" id="cardExpiry" placeholder="MM/AA" maxlength="5">
+                        </div>
+                        <div class="form-group">
+                            <label>CVV</label>
+                            <input type="text" id="cardCvv" placeholder="123" maxlength="4">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Nome no Cartão</label>
+                        <input type="text" id="cardName" placeholder="Como está no cartão">
+                    </div>
+                    <div class="form-group">
+                        <label>Parcelas</label>
+                        <select id="parcelas">
+                            <option value="1">1x de R$ 0,00</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="payment-actions">
+                <button id="btnConfirmarPagamento" class="btn-pagar" disabled>
+                    <i class="fa-solid fa-lock"></i> Confirmar Pagamento
+                </button>
+                <a href="agendamento.html" class="btn-cancelar">Cancelar</a>
+            </div>
+
+            <div id="statusMessage" class="status-message"></div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script type="module" src="pagamento-cliente.js"></script>
+</body>
+
+</html>

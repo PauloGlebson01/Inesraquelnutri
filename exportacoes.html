@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Exportações | Inês Raquel</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="dashboard.css">
+    <link rel="stylesheet" href="exportacoes.css">
+    <link rel="icon" type="image/png" href="./assets/Nutri-icon.png">
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+</head>
+
+<body>
+
+    <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Abrir menu">
+        <i class="fa-solid fa-bars"></i>
+    </button>
+
+    <div class="mobile-overlay" id="mobileOverlay"></div>
+
+    <div class="wrapper" id="painel">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <img src="./assets/Nutri-perfil.jpg" alt="Logo" class="sidebar-logo">
+                <span class="brand-name">Inês Raquel</span>
+                <button class="close-sidebar-btn" id="closeSidebarBtn" aria-label="Fechar menu">
+                    <i class="fa-solid fa-times"></i>
+                </button>
+            </div>
+
+            <nav class="sidebar-nav">
+                <ul>
+                    <li class="nav-item">
+                        <a href="dashboard.html"><i class="fa-solid fa-house"></i> <span>Dashboard</span></a>
+                    </li>
+                    <li class="nav-separator">Navegação</li>
+                    <li class="nav-item">
+                        <a href="agenda.html"><i class="fa-solid fa-calendar-days"></i> <span>Agenda</span></a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="pacientes.html"><i class="fa-solid fa-users"></i> <span>Pacientes</span></a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="planos.html"><i class="fa-solid fa-apple-whole"></i> <span>Planos</span></a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="estoque.html"><i class="fa-solid fa-box-archive"></i> <span>Estoque</span></a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="pagamentos.html"><i class="fa-solid fa-credit-card"></i> <span>Pagamentos</span></a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="resultados.html"><i class="fa-solid fa-images"></i> <span>Resultados</span></a>
+                    </li>
+                    <li class="nav-separator">Administração</li>
+                    <li class="nav-item active">
+                        <a href="exportacoes.html"><i class="fa-solid fa-chart-pie"></i> <span>Exportações</span></a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="configuracoes.html"><i class="fa-solid fa-gear"></i> <span>Configurações</span></a>
+                    </li>
+                </ul>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-profile">
+                    <div class="user-avatar">IR</div>
+                    <div class="user-info">
+                        <span class="user-name">Inês Raquel</span>
+                        <span class="user-status">Online</span>
+                    </div>
+                    <button id="logout" class="btn-logout-icon" title="Sair">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="topbar">
+                <div class="topbar-left">
+                    <h1>📥 Central de Exportações</h1>
+                    <p>Exporte seus dados nos formatos Excel e PDF</p>
+                </div>
+            </header>
+
+            <div class="container-fluid">
+                <!-- Exportar para Excel -->
+                <div class="export-section">
+                    <div class="section-header">
+                        <i class="fa-solid fa-file-excel"></i>
+                        <h2>Exportar para Excel</h2>
+                    </div>
+                    <div class="export-cards">
+                        <div class="export-card">
+                            <div class="card-icon excel-icon">
+                                <i class="fa-solid fa-calendar-check"></i>
+                            </div>
+                            <h3>Agendamentos</h3>
+                            <p>Gerar relatório detalhado de agendamentos</p>
+                            <div class="date-filter">
+                                <input type="date" id="excelDataInicio">
+                                <span>até</span>
+                                <input type="date" id="excelDataFim">
+                            </div>
+                            <button onclick="exportarExcelAgendamentos()" class="btn-excel">
+                                <i class="fa-solid fa-download"></i> Exportar Agendamentos
+                            </button>
+                        </div>
+
+                        <div class="export-card">
+                            <div class="card-icon excel-icon">
+                                <i class="fa-solid fa-users"></i>
+                            </div>
+                            <h3>Pacientes</h3>
+                            <p>Exportar cadastro completo de pacientes</p>
+                            <button onclick="exportarExcelPacientes()" class="btn-excel">
+                                <i class="fa-solid fa-download"></i> Exportar Pacientes
+                            </button>
+                        </div>
+
+                        <div class="export-card">
+                            <div class="card-icon excel-icon">
+                                <i class="fa-solid fa-chart-line"></i>
+                            </div>
+                            <h3>Relatório Financeiro</h3>
+                            <p>Exportar dados de faturamento e ticket médio</p>
+                            <button onclick="exportarExcelFinanceiro()" class="btn-excel">
+                                <i class="fa-solid fa-download"></i> Exportar Financeiro
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Exportar para PDF -->
+                <div class="export-section">
+                    <div class="section-header">
+                        <i class="fa-solid fa-file-pdf"></i>
+                        <h2>Exportar para PDF</h2>
+                    </div>
+                    <div class="export-cards">
+                        <div class="export-card">
+                            <div class="card-icon pdf-icon">
+                                <i class="fa-solid fa-calendar-week"></i>
+                            </div>
+                            <h3>Relatório de Agendamentos</h3>
+                            <p>Gerar relatório detalhado de agendamentos</p>
+                            <div class="date-filter">
+                                <input type="date" id="pdfDataInicio">
+                                <span>até</span>
+                                <input type="date" id="pdfDataFim">
+                            </div>
+                            <button onclick="exportarPDFAgendamentos()" class="btn-pdf">
+                                <i class="fa-solid fa-file-pdf"></i> Gerar PDF
+                            </button>
+                        </div>
+
+                        <div class="export-card">
+                            <div class="card-icon pdf-icon">
+                                <i class="fa-solid fa-notes-medical"></i>
+                            </div>
+                            <h3>Relatório de Pacientes</h3>
+                            <p>Gerar relatório completo com todos os pacientes</p>
+                            <button onclick="exportarPDFPacientes()" class="btn-pdf">
+                                <i class="fa-solid fa-file-pdf"></i> Gerar PDF
+                            </button>
+                        </div>
+
+                        <div class="export-card">
+                            <div class="card-icon pdf-icon">
+                                <i class="fa-solid fa-chart-pie"></i>
+                            </div>
+                            <h3>Relatório Financeiro</h3>
+                            <p>Gerar relatório completo com faturamento, ticket médio e análise por plano</p>
+                            <button onclick="exportarPDFFinanceiro()" class="btn-pdf">
+                                <i class="fa-solid fa-file-pdf"></i> Gerar PDF Financeiro
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Histórico de Exportações -->
+                <div class="history-section">
+                    <div class="section-header">
+                        <i class="fa-solid fa-clock-rotate-left"></i>
+                        <h2>Histórico de Exportações</h2>
+                    </div>
+                    <div class="history-table-container">
+                        <table class="history-table">
+                            <thead>
+                                <tr>
+                                    <th>Data</th>
+                                    <th>Tipo</th>
+                                    <th>Formato</th>
+                                    <th>Status</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="historyList">
+                                <tr>
+                                    <td colspan="5" style="text-align: center;">Nenhuma exportação realizada</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="notificacao" class="notification" style="display:none;">
+        <i class="fa-solid fa-bell"></i>
+        <span id="notificacaoMsg"></span>
+    </div>
+
+    <script type="module" src="exportacoes.js"></script>
+
+    <script>
+        // Menu Mobile e Lógica de Navegação
+        (function () {
+            const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+            const closeSidebarBtn = document.getElementById('closeSidebarBtn');
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('mobileOverlay');
+
+            if (!mobileMenuBtn || !sidebar) return;
+
+            function openMenu() {
+                sidebar.classList.add('mobile-open');
+                if (overlay) overlay.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeMenu() {
+                sidebar.classList.remove('mobile-open');
+                if (overlay) overlay.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+
+            mobileMenuBtn.addEventListener('click', openMenu);
+
+            if (closeSidebarBtn) {
+                closeSidebarBtn.addEventListener('click', closeMenu);
+            }
+
+            if (overlay) {
+                overlay.addEventListener('click', closeMenu);
+            }
+
+            document.querySelectorAll('.sidebar-nav a').forEach(link => {
+                link.addEventListener('click', closeMenu);
+            });
+
+            window.addEventListener('resize', function () {
+                if (window.innerWidth > 768) {
+                    closeMenu();
+                }
+            });
+
+            const currentPage = window.location.pathname.split('/').pop();
+            document.querySelectorAll('.sidebar-nav .nav-item').forEach(item => {
+                const link = item.querySelector('a');
+                if (link && link.getAttribute('href') === currentPage) {
+                    item.classList.add('active');
+                } else {
+                    item.classList.remove('active');
+                }
+            });
+        })();
+    </script>
+</body>
+
+</html>

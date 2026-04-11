@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Inês Raquel | SOFTCLICK - Gestão e Agenda Inteligente</title>
+
+  <meta name="description" content="Cartão digital profissional - Nutricionista">
+
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <link rel="icon" type="image/png" href="./assets/Nutri-icon.png">
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+
+<body class="dark">
+
+  <div class="container">
+
+    <header class="header">
+      <button id="themeToggle" class="theme-toggle" aria-label="Alternar tema">
+        🌙
+      </button>
+
+      <button id="shareBtn" class="share-btn">
+        <i class="fa-solid fa-share-nodes"></i>
+        Compartilhar
+      </button>
+    </header>
+
+    <section class="profile">
+      <div class="logo">
+        <img src="./assets/Nutri-perfil.jpg" alt="Foto de Perfil Nutri">
+      </div>
+
+      <h1>Inês Raquel</h1>
+      <p>CRN6/48555</p><br>
+
+      <p class="subtitle">
+        Nutricionista clínica com ênfase em
+        emagrecimento, hipertrofia,
+        performance e qualidade de vida.
+      </p>
+    </section>
+
+    <section class="primary-action">
+      <a href="agendamento.html" target="_blank" class="btn-primary">
+        <i class="fa-solid fa-calendar-check"></i>
+        Agendar Consulta
+      </a>
+    </section>
+
+    <section class="quick-actions">
+      <a href="#" id="servicosBtn" class="quick-card">
+        <i class="fa-solid fa-apple-whole"></i>
+        <span>Planos</span>
+      </a>
+
+      <a href="#" id="produtosBtn" class="quick-card">
+        <i class="fa-solid fa-box"></i>
+        <span>Produtos</span>
+      </a>
+
+      <a href="#" id="galeriaBtn" class="quick-card">
+        <i class="fa-solid fa-images"></i>
+        <span>Resultados</span>
+      </a>
+
+      <a href="tel:+5583991150115" class="quick-card">
+        <i class="fa-solid fa-phone"></i>
+        <span>Ligar</span>
+      </a>
+
+      <a href="mailto:ineesdias@outlook.com" class="quick-card">
+        <i class="fa-solid fa-envelope"></i>
+        <span>Email</span>
+      </a>
+
+      <a href="https://maps.app.goo.gl/BuGGA8Bgo1upw3rFA" target="_blank" class="quick-card">
+        <i class="fa-solid fa-location-dot"></i>
+        <span>Consultório</span>
+      </a>
+    </section>
+
+    <section class="social">
+      <a href="https://www.instagram.com/nutri.inesraquel" target="_blank" aria-label="Instagram">
+        <i class="fa-brands fa-instagram"></i>
+      </a>
+
+      <a href="https://wa.me/5583991150115" target="_blank" aria-label="WhatsApp">
+        <i class="fa-brands fa-whatsapp"></i>
+      </a>
+    </section>
+
+    <footer class="footer">
+      © 2026 Inês Raquel | SOFTCLICK by SoftPower
+    </footer>
+  </div>
+
+  <!-- Modal de Planos -->
+  <div id="servicosModal" class="servicos-modal">
+    <div class="servicos-modal-content">
+      <div class="servicos-modal-header">
+        <h2><i class="fa-solid fa-apple-whole"></i> Nossos Planos</h2>
+        <button class="servicos-modal-close">&times;</button>
+      </div>
+      <div class="servicos-modal-body">
+        <div id="servicosLista" class="servicos-lista">
+          <div class="loading-servicos">
+            <i class="fa-solid fa-spinner fa-spin"></i>
+            <p>Carregando planos...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Detalhes do Plano -->
+  <div id="servicoDetalheModal" class="servicos-modal">
+    <div class="servicos-modal-content servico-detalhe-content">
+      <div class="servicos-modal-header">
+        <h2 id="detalheServicoNome"></h2>
+        <button class="servico-detalhe-close">&times;</button>
+      </div>
+      <div class="servicos-modal-body">
+        <div class="servico-detalhe-info">
+          <div class="detalhe-row">
+            <i class="fa-regular fa-clock"></i>
+            <span>Duração: <strong id="detalheServicoDuracao"></strong></span>
+          </div>
+          <div class="detalhe-row">
+            <i class="fa-solid fa-tag"></i>
+            <span>Categoria: <strong id="detalheServicoCategoria"></strong></span>
+          </div>
+          <div class="detalhe-row">
+            <i class="fa-solid fa-dollar-sign"></i>
+            <span>Preço: <strong id="detalheServicoPreco"></strong></span>
+          </div>
+        </div>
+        <div class="servico-detalhe-descricao">
+          <h4>Descrição</h4>
+          <p id="detalheServicoDescricao"></p>
+        </div>
+        <div class="servico-detalhe-actions">
+          <a href="agendamento.html" class="btn-agendar-detalhe" id="btnAgendarDetalhe">
+            <i class="fa-solid fa-calendar-check"></i> Agendar essa consulta
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Produtos -->
+  <div id="produtosModal" class="servicos-modal">
+    <div class="servicos-modal-content">
+      <div class="servicos-modal-header">
+        <h2><i class="fa-solid fa-box"></i> Produtos Recomendados</h2>
+        <button class="produtos-modal-close">&times;</button>
+      </div>
+      <div class="servicos-modal-body">
+        <div id="produtosLista" class="produtos-lista">
+          <div class="loading-produtos">
+            <i class="fa-solid fa-spinner fa-spin"></i>
+            <p>Carregando produtos...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Detalhes do Produto -->
+  <div id="produtoDetalheModal" class="servicos-modal">
+    <div class="servicos-modal-content produto-detalhe-content">
+      <div class="servicos-modal-header">
+        <h2 id="detalheProdutoNome"></h2>
+        <button class="produto-detalhe-close">&times;</button>
+      </div>
+      <div class="servicos-modal-body">
+        <div class="produto-detalhe-info">
+          <div class="detalhe-row">
+            <i class="fa-solid fa-tag"></i>
+            <span>Categoria: <strong id="detalheProdutoCategoria"></strong></span>
+          </div>
+          <div class="detalhe-row">
+            <i class="fa-solid fa-dollar-sign"></i>
+            <span>Preço: <strong id="detalheProdutoPreco"></strong></span>
+          </div>
+          <div class="detalhe-row">
+            <i class="fa-solid fa-truck"></i>
+            <span>Fornecedor: <strong id="detalheProdutoFornecedor"></strong></span>
+          </div>
+        </div>
+        <div class="produto-detalhe-descricao">
+          <h4>Descrição</h4>
+          <p id="detalheProdutoDescricao"></p>
+        </div>
+        <div class="produto-detalhe-actions">
+          <a href="#" id="btnComprarProduto" class="btn-agendar-detalhe" target="_blank">
+            <i class="fa-solid fa-cart-shopping"></i> Comprar Produto
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Galeria de Resultados -->
+  <div id="galeriaModal" class="servicos-modal">
+    <div class="servicos-modal-content galeria-content">
+      <div class="servicos-modal-header">
+        <h2><i class="fa-solid fa-images"></i> Resultados dos Pacientes</h2>
+        <button class="galeria-modal-close">&times;</button>
+      </div>
+      <div class="servicos-modal-body">
+        <div id="galeriaLista" class="galeria-lista">
+          <div class="loading-galeria">
+            <i class="fa-solid fa-spinner fa-spin"></i>
+            <p>Carregando resultados...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Detalhes do Resultado -->
+  <div id="resultadoDetalheModal" class="servicos-modal">
+    <div class="servicos-modal-content resultado-detalhe-content">
+      <div class="servicos-modal-header">
+        <h2 id="detalheResultadoTitulo"></h2>
+        <button class="resultado-detalhe-close">&times;</button>
+      </div>
+      <div class="servicos-modal-body">
+        <div class="resultado-detalhe-imagem">
+          <img id="detalheResultadoImagem" src="" alt="Resultado">
+        </div>
+        <div class="resultado-detalhe-descricao">
+          <h4>Descrição</h4>
+          <p id="detalheResultadoDescricao"></p>
+        </div>
+        <div class="resultado-detalhe-meta">
+          <div class="detalhe-row">
+            <i class="fa-solid fa-calendar"></i>
+            <span>Período: <strong id="detalheResultadoPeriodo"></strong></span>
+          </div>
+          <div class="detalhe-row">
+            <i class="fa-solid fa-chart-line"></i>
+            <span>Resultado: <strong id="detalheResultadoMeta"></strong></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="shareModal" class="share-modal">
+    <div class="share-content">
+      <h3>Compartilhar Cartão</h3>
+
+      <div class="qr-box">
+        <div id="qrcode"></div>
+        <div class="qr-logo-overlay">
+          <img src="./assets/Nutri-perfil.jpg" alt="Logo">
+        </div>
+      </div>
+
+      <button id="copyLinkBtn" class="share-action">
+        📋 Copiar link
+      </button>
+
+      <button id="shareLinkBtn" class="share-action">
+        🔗 Compartilhar
+      </button>
+
+      <button id="closeShare" class="close-share">
+        Fechar
+      </button>
+    </div>
+  </div>
+
+  <script type="module" src="script.js"></script>
+</body>
+
+</html>

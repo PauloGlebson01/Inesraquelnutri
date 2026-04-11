@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Resultados | Inês Raquel</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="dashboard.css">
+    <link rel="stylesheet" href="resultados.css">
+    <link rel="icon" type="image/png" href="./assets/Nutri-icon.png">
+</head>
+
+<body>
+
+    <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Abrir menu">
+        <i class="fa-solid fa-bars"></i>
+    </button>
+
+    <div class="mobile-overlay" id="mobileOverlay"></div>
+
+    <div class="wrapper" id="painel">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <img src="./assets/Nutri-perfil.jpg" alt="Logo" class="sidebar-logo">
+                <span class="brand-name">Inês Raquel</span>
+                <button class="close-sidebar-btn" id="closeSidebarBtn" aria-label="Fechar menu">
+                    <i class="fa-solid fa-times"></i>
+                </button>
+            </div>
+
+            <nav class="sidebar-nav">
+                <ul>
+                    <li class="nav-item">
+                        <a href="dashboard.html"><i class="fa-solid fa-house"></i> <span>Dashboard</span></a>
+                    </li>
+                    <li class="nav-separator">Navegação</li>
+                    <li class="nav-item">
+                        <a href="agenda.html"><i class="fa-solid fa-calendar-days"></i> <span>Agenda</span></a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="pacientes.html"><i class="fa-solid fa-users"></i> <span>Pacientes</span></a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="planos.html"><i class="fa-solid fa-apple-whole"></i> <span>Planos</span></a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="estoque.html"><i class="fa-solid fa-box-archive"></i> <span>Estoque</span></a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="pagamentos.html"><i class="fa-solid fa-credit-card"></i> <span>Pagamentos</span></a>
+                    </li>
+                    <li class="nav-item active">
+                        <a href="resultados.html"><i class="fa-solid fa-images"></i> <span>Resultados</span></a>
+                    </li>
+                    <li class="nav-separator">Administração</li>
+                    <li class="nav-item">
+                        <a href="exportacoes.html"><i class="fa-solid fa-chart-pie"></i> <span>Exportações</span></a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="configuracoes.html"><i class="fa-solid fa-gear"></i> <span>Configurações</span></a>
+                    </li>
+                </ul>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-profile">
+                    <div class="user-avatar">IR</div>
+                    <div class="user-info">
+                        <span class="user-name">Inês Raquel</span>
+                        <span class="user-status">Online</span>
+                    </div>
+                    <button id="logout" class="btn-logout-icon" title="Sair">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="topbar">
+                <div class="topbar-left">
+                    <h1>📸 Galeria de Resultados</h1>
+                    <p>Gerencie os resultados (antes/depois) dos pacientes</p>
+                </div>
+                <div class="topbar-actions">
+                    <button id="btnNovoResultado" class="btn-primary">
+                        <i class="fa-solid fa-plus"></i> Novo Resultado
+                    </button>
+                </div>
+            </header>
+
+            <div class="container-fluid">
+                <!-- Filtros -->
+                <div class="filter-resultados">
+                    <div class="filter-group">
+                        <i class="fa-solid fa-search"></i>
+                        <input type="text" id="searchResultado" placeholder="Buscar por título ou paciente..." class="search-input">
+                    </div>
+                    <button id="btnLimparFiltros" class="btn-ghost">
+                        <i class="fa-solid fa-eraser"></i> Limpar
+                    </button>
+                </div>
+
+                <!-- Grid de Resultados -->
+                <div class="resultados-grid" id="resultadosGrid">
+                    <div class="loading-resultados">
+                        <i class="fa-solid fa-spinner fa-spin"></i> Carregando resultados...
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Novo/Editar Resultado -->
+    <div id="modalResultado" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle"><i class="fa-solid fa-plus"></i> Novo Resultado</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <form id="formResultado">
+                <input type="hidden" id="resultadoId">
+                <div class="form-group">
+                    <label><i class="fa-solid fa-tag"></i> Título *</label>
+                    <input type="text" id="resultadoTitulo" required placeholder="Ex: Emagrecimento - 3 meses">
+                </div>
+                <div class="form-group">
+                    <label><i class="fa-solid fa-image"></i> Imagem (Antes/Depois) *</label>
+                    <div class="image-upload-container">
+                        <div class="image-preview" id="imagePreview">
+                            <i class="fa-solid fa-cloud-upload-alt"></i>
+                            <span>Clique para selecionar uma imagem</span>
+                        </div>
+                        <input type="file" id="resultadoImagem" accept="image/*" style="display: none;">
+                        <input type="hidden" id="resultadoImagemUrl">
+                    </div>
+                    <small class="form-text">Formatos: JPG, PNG, GIF. Tamanho máximo: 2MB</small>
+                </div>
+                <div class="form-group">
+                    <label><i class="fa-solid fa-align-left"></i> Descrição</label>
+                    <textarea id="resultadoDescricao" rows="3" placeholder="Descreva a evolução do paciente..."></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label><i class="fa-solid fa-calendar"></i> Período</label>
+                        <input type="text" id="resultadoPeriodo" placeholder="Ex: Jan 2025 - Mar 2025">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fa-solid fa-chart-line"></i> Resultado Alcançado</label>
+                        <input type="text" id="resultadoMeta" placeholder="Ex: -12kg | -8% de gordura">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label><i class="fa-solid fa-user"></i> Paciente</label>
+                    <input type="text" id="resultadoPaciente" placeholder="Ex: Maria Silva">
+                </div>
+                <div class="form-group">
+                    <label><i class="fa-solid fa-sort-numeric-down"></i> Ordem de Exibição</label>
+                    <input type="number" id="resultadoOrdem" value="0" placeholder="0 = primeiro">
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel">Cancelar</button>
+                    <button type="submit" class="btn-save">Salvar Resultado</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Confirmar Exclusão -->
+    <div id="modalExcluir" class="modal">
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-trash"></i> Excluir Resultado</h2>
+                <button class="modal-close-excluir">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Tem certeza que deseja excluir este resultado?</p>
+                <p><strong id="excluirTitulo"></strong></p>
+                <p class="text-warning">⚠️ Esta ação não poderá ser desfeita.</p>
+            </div>
+            <div class="form-actions">
+                <button class="btn-cancel-excluir">Cancelar</button>
+                <button id="confirmarExcluir" class="btn-danger">Excluir</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast de Notificação -->
+    <div id="toast" class="toast">
+        <i class="fa-solid fa-circle-check"></i>
+        <span id="toastMsg"></span>
+    </div>
+
+    <script type="module" src="resultados.js"></script>
+
+    <script>
+        // Menu Mobile
+        (function () {
+            const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+            const closeSidebarBtn = document.getElementById('closeSidebarBtn');
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('mobileOverlay');
+
+            if (!mobileMenuBtn || !sidebar) return;
+
+            function openMenu() {
+                sidebar.classList.add('mobile-open');
+                if (overlay) overlay.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeMenu() {
+                sidebar.classList.remove('mobile-open');
+                if (overlay) overlay.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+
+            mobileMenuBtn.addEventListener('click', openMenu);
+            if (closeSidebarBtn) closeSidebarBtn.addEventListener('click', closeMenu);
+            if (overlay) overlay.addEventListener('click', closeMenu);
+
+            document.querySelectorAll('.sidebar-nav a').forEach(link => {
+                link.addEventListener('click', closeMenu);
+            });
+
+            window.addEventListener('resize', function () {
+                if (window.innerWidth > 768) closeMenu();
+            });
+
+            const currentPage = window.location.pathname.split('/').pop();
+            document.querySelectorAll('.sidebar-nav .nav-item').forEach(item => {
+                const link = item.querySelector('a');
+                if (link && link.getAttribute('href') === currentPage) {
+                    item.classList.add('active');
+                } else {
+                    item.classList.remove('active');
+                }
+            });
+        })();
+    </script>
+</body>
+
+</html>

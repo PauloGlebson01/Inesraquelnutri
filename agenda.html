@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Agenda | Inês Raquel</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="dashboard.css">
+    <link rel="stylesheet" href="agenda.css">
+    <link rel="icon" type="image/png" href="./assets/Nutri-icon.png">
+</head>
+
+<body>
+
+    <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Abrir menu">
+        <i class="fa-solid fa-bars"></i>
+    </button>
+
+    <div class="mobile-overlay" id="mobileOverlay"></div>
+
+    <div class="wrapper" id="painel">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <img src="./assets/Nutri-perfil.jpg" alt="Logo" class="sidebar-logo">
+                <span class="brand-name">Inês Raquel</span>
+                <button class="close-sidebar-btn" id="closeSidebarBtn" aria-label="Fechar menu">
+                    <i class="fa-solid fa-times"></i>
+                </button>
+            </div>
+
+            <nav class="sidebar-nav">
+                <ul>
+                    <li class="nav-item">
+                        <a href="dashboard.html"><i class="fa-solid fa-house"></i> <span>Dashboard</span></a>
+                    </li>
+                    <li class="nav-separator">Navegação</li>
+                    <li class="nav-item active">
+                        <a href="agenda.html"><i class="fa-solid fa-calendar-days"></i> <span>Agenda</span></a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="pacientes.html"><i class="fa-solid fa-users"></i> <span>Pacientes</span></a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="planos.html"><i class="fa-solid fa-apple-whole"></i> <span>Planos</span></a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="estoque.html"><i class="fa-solid fa-box-archive"></i> <span>Estoque</span></a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="pagamentos.html"><i class="fa-solid fa-credit-card"></i> <span>Pagamentos</span></a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="resultados.html"><i class="fa-solid fa-images"></i> <span>Resultados</span></a>
+                    </li>
+                    <li class="nav-separator">Administração</li>
+                    <li class="nav-item">
+                        <a href="exportacoes.html"><i class="fa-solid fa-chart-pie"></i> <span>Exportações</span></a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="configuracoes.html"><i class="fa-solid fa-gear"></i> <span>Configurações</span></a>
+                    </li>
+                </ul>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-profile">
+                    <div class="user-avatar">IR</div>
+                    <div class="user-info">
+                        <span class="user-name">Inês Raquel</span>
+                        <span class="user-status">Online</span>
+                    </div>
+                    <button id="logout" class="btn-logout-icon" title="Sair">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="topbar">
+                <div class="topbar-left">
+                    <h1>📅 Agenda de Consultas</h1>
+                    <p>Gerencie todos os agendamentos do consultório</p>
+                </div>
+            </header>
+
+            <div class="container-fluid">
+                <section class="filter-card">
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <label><i class="fa-solid fa-filter"></i> Período:</label>
+                            <input type="date" id="dataInicio">
+                            <span>até</span>
+                            <input type="date" id="dataFim">
+                        </div>
+                        <div class="filter-buttons">
+                            <button id="btnFiltrarPeriodo" class="btn-primary">Filtrar</button>
+                            <button id="btnLimparPeriodo" class="btn-ghost">Limpar</button>
+                        </div>
+                    </div>
+                </section>
+
+                <div class="status-container">
+                    <section class="status-column">
+                        <h3 class="status-header confirmado">
+                            <i class="fa-regular fa-calendar-check"></i> Confirmados
+                            <span id="countConfirmado" class="count-badge">0</span>
+                        </h3>
+                        <div id="confirmados" class="appointment-list"></div>
+                    </section>
+
+                    <section class="status-column">
+                        <h3 class="status-header concluido">
+                            <i class="fa-regular fa-circle-check"></i> Realizados
+                            <span id="countConcluido" class="count-badge">0</span>
+                        </h3>
+                        <div id="concluidos" class="appointment-list"></div>
+                    </section>
+
+                    <section class="status-column">
+                        <h3 class="status-header cancelado">
+                            <i class="fa-regular fa-circle-xmark"></i> Cancelados
+                            <span id="countCancelado" class="count-badge">0</span>
+                        </h3>
+                        <div id="cancelados" class="appointment-list"></div>
+                    </section>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="notificacao" class="notification" style="display:none;">
+        <i class="fa-solid fa-bell"></i>
+        <span>Novo agendamento recebido!</span>
+    </div>
+
+    <audio id="notificationSound" src="./assets/Alerta-agendamento.mp3" preload="auto"></audio>
+
+    <script type="module" src="agenda.js"></script>
+
+    <script>
+        // Menu Mobile e Lógica de Navegação
+        (function () {
+            const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+            const closeSidebarBtn = document.getElementById('closeSidebarBtn');
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('mobileOverlay');
+
+            if (!mobileMenuBtn || !sidebar) return;
+
+            function openMenu() {
+                sidebar.classList.add('mobile-open');
+                if (overlay) overlay.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeMenu() {
+                sidebar.classList.remove('mobile-open');
+                if (overlay) overlay.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+
+            mobileMenuBtn.addEventListener('click', openMenu);
+
+            if (closeSidebarBtn) {
+                closeSidebarBtn.addEventListener('click', closeMenu);
+            }
+
+            if (overlay) {
+                overlay.addEventListener('click', closeMenu);
+            }
+
+            document.querySelectorAll('.sidebar-nav a').forEach(link => {
+                link.addEventListener('click', closeMenu);
+            });
+
+            window.addEventListener('resize', function () {
+                if (window.innerWidth > 768) {
+                    closeMenu();
+                }
+            });
+
+            const currentPage = window.location.pathname.split('/').pop();
+            document.querySelectorAll('.sidebar-nav .nav-item').forEach(item => {
+                const link = item.querySelector('a');
+                if (link && link.getAttribute('href') === currentPage) {
+                    item.classList.add('active');
+                } else {
+                    item.classList.remove('active');
+                }
+            });
+        })();
+    </script>
+</body>
+
+</html>
