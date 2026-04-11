@@ -590,7 +590,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         try {
             new QRCode(qrContainer, {
-                text: "https://seudominio.com.br",
+                text: "https://pauloglebson01.github.io/Inesraquelnutri/",
                 width: 256,
                 height: 256,
                 colorDark: "#10b981",
