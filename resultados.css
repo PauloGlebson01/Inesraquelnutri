@@ -888,3 +888,10 @@
         align-items: flex-start;
     }
 }
+
+/* Ajuste para mobile */
+@media (max-width: 768px) {
+    .container-fluid {
+        padding-top: 35px;
+    }
+}
