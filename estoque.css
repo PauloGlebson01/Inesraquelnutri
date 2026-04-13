@@ -1094,3 +1094,23 @@
         justify-content: center;
     }
 }
+
+/* ============================= */
+/* ESTOQUE - GARANTIR ESPAÇAMENTO */
+/* ============================= */
+
+/* Garantir que o conteúdo não fique sob a topbar */
+.main-content {
+    padding-top: 0;
+}
+
+.container-fluid {
+    padding-top: 20px;
+}
+
+/* Ajuste para mobile */
+@media (max-width: 768px) {
+    .container-fluid {
+        padding-top: 35px;
+    }
+}
