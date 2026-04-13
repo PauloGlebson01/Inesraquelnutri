@@ -51,7 +51,7 @@
 .export-card:hover {
     background: rgba(255, 255, 255, 0.08);
     transform: translateY(-4px);
-    border-color: rgba(219, 39, 119, 0.3);
+    border-color: rgba(16, 185, 129, 0.3);
 }
 
 .card-icon {
@@ -91,6 +91,7 @@
     margin-bottom: 20px;
 }
 
+/* CORREÇÃO DO CAMPO DE DATA */
 .date-filter {
     display: flex;
     align-items: center;
@@ -110,18 +111,21 @@
     padding: 10px 12px;
     color: #fff;
     font-size: 0.9rem;
-    min-width: 120px;
+    min-width: 0;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .date-filter input:focus {
     outline: none;
-    border-color: white;
-    background: rgba(255, 255, 255, 0.15);
+    border-color: #10b981;
+    background: rgba(16, 185, 129, 0.1);
 }
 
 .date-filter span {
     color: var(--text-muted);
     font-size: 0.9rem;
+    flex-shrink: 0;
 }
 
 .btn-excel,
@@ -178,6 +182,7 @@
     width: 100%;
     border-collapse: collapse;
     color: #fff;
+    min-width: 500px;
 }
 
 .history-table th {
@@ -272,30 +277,141 @@
     }
 }
 
+/* ============================= */
+/* RESPONSIVIDADE - CORRIGIDA (CAMPOS DE DATA) */
+/* ============================= */
+
+/* Tablet */
 @media (max-width: 768px) {
     .export-cards {
         grid-template-columns: 1fr;
+        gap: 16px;
     }
+    
+    .export-section {
+        padding: 16px;
+        margin-bottom: 20px;
+    }
+    
     .section-header h2 {
         font-size: 1.1rem;
     }
+    
+    .section-header i {
+        font-size: 1.3rem;
+    }
+    
+    .export-card {
+        padding: 16px;
+    }
+    
+    .card-icon {
+        width: 45px;
+        height: 45px;
+        font-size: 1.3rem;
+        margin-bottom: 15px;
+    }
+    
+    .export-card h3 {
+        font-size: 1rem;
+    }
+    
+    .export-card p {
+        font-size: 0.85rem;
+        margin-bottom: 15px;
+    }
+    
+    /* CORREÇÃO DO CAMPO DE DATA - MOBILE */
     .date-filter {
         flex-direction: column;
-        gap: 8px;
+        align-items: stretch;
+        gap: 10px;
+        padding: 12px;
     }
+    
     .date-filter span {
         display: none;
     }
+    
     .date-filter input {
         width: 100%;
+        min-width: 100%;
+        padding: 10px 12px;
+        font-size: 0.85rem;
+        box-sizing: border-box;
     }
+    
+    .btn-excel, .btn-pdf {
+        padding: 10px 16px;
+        font-size: 0.85rem;
+    }
+    
+    .history-section {
+        padding: 16px;
+    }
+    
+    .history-table th,
+    .history-table td {
+        padding: 8px;
+        font-size: 0.75rem;
+    }
+    
     .action-buttons {
         flex-direction: column;
         gap: 5px;
     }
+    
+    .action-btn {
+        padding: 4px 8px;
+        font-size: 0.7rem;
+    }
+}
+
+/* Mobile pequeno (até 480px) */
+@media (max-width: 480px) {
+    .export-section {
+        padding: 12px;
+    }
+    
+    .export-card {
+        padding: 12px;
+    }
+    
+    .card-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 1.1rem;
+    }
+    
+    .export-card h3 {
+        font-size: 0.9rem;
+    }
+    
+    .export-card p {
+        font-size: 0.75rem;
+    }
+    
+    /* CORREÇÃO DO CAMPO DE DATA - MOBILE PEQUENO */
+    .date-filter {
+        padding: 10px;
+        gap: 8px;
+    }
+    
+    .date-filter input {
+        padding: 8px 10px;
+        font-size: 0.75rem;
+        min-width: 100%;
+        width: 100%;
+    }
+    
+    .btn-excel, .btn-pdf {
+        padding: 8px 12px;
+        font-size: 0.75rem;
+    }
+    
     .history-table th,
     .history-table td {
-        padding: 8px;
-        font-size: 0.8rem;
+        padding: 6px;
+        font-size: 0.65rem;
     }
 }
