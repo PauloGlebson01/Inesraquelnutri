@@ -703,3 +703,59 @@ body {
     background: var(--primary);
     border-radius: 4px;
 }
+
+/* ============================= */
+/* MENU MOBILE - BOTÃO HAMBÚRGUER */
+/* ============================= */
+.mobile-menu-btn {
+    display: none;
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    z-index: 1001;
+    background: var(--primary);
+    border: none;
+    color: white;
+    width: 45px;
+    height: 45px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 1.3rem;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s ease;
+}
+
+.mobile-menu-btn:hover {
+    transform: scale(1.05);
+    background: #059669;
+}
+
+/* Botão menu quando o sidebar está aberto - FICA INVISÍVEL */
+.sidebar.mobile-open ~ .mobile-menu-btn,
+body:has(.sidebar.mobile-open) .mobile-menu-btn {
+    display: none !important;
+    opacity: 0;
+    visibility: hidden;
+}
+
+/* Botão menu em desktop */
+@media (min-width: 769px) {
+    .mobile-menu-btn {
+        display: none !important;
+    }
+}
+
+/* Botão menu em mobile - visível apenas quando sidebar está fechada */
+@media (max-width: 768px) {
+    .mobile-menu-btn {
+        display: flex;
+    }
+    
+    /* Esconder botão quando sidebar está aberta */
+    .sidebar.mobile-open + .mobile-menu-btn,
+    .sidebar.mobile-open ~ .mobile-menu-btn {
+        display: none !important;
+    }
+}
