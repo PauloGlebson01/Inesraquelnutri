@@ -23,8 +23,6 @@ body {
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
     transition: all 0.3s ease;
     overflow-x: hidden;
-    word-wrap: break-word;
-    overflow-wrap: break-word;
 }
 
 .profile {
@@ -47,7 +45,6 @@ body {
 .input-group {
     margin-bottom: 20px;
     width: 100%;
-    overflow-x: hidden;
 }
 
 .input-group label {
@@ -58,20 +55,17 @@ body {
     color: #121212;
     margin-bottom: 8px;
     font-size: 0.9rem;
-    flex-wrap: wrap;
 }
 
 .input-group label i {
     color: #10b981;
     width: 20px;
-    flex-shrink: 0;
 }
 
-/* Estilo padrão para TODOS os inputs e selects */
+/* ESTILO PADRÃO PARA TODOS OS CAMPOS - INCLUSIVE DATA */
 .input-group input,
 .input-group select {
     width: 100%;
-    max-width: 100%;
     padding: 12px 16px;
     border: 2px solid #e2e8f0;
     border-radius: 16px;
@@ -82,60 +76,50 @@ body {
     box-sizing: border-box;
 }
 
-/* Estilo específico para o campo de data - CORREÇÃO MOBILE */
+/* ESTILO ESPECÍFICO PARA O CAMPO DATA - CORREÇÃO DEFINITIVA */
 .input-group input[type="date"] {
     width: 100%;
     min-width: 0;
-    max-width: 100%;
-    display: block;
-    font-size: 1rem;
     color: #121212;
-    background: #f8fafc;
-    border: 2px solid #e2e8f0;
-    border-radius: 16px;
-    padding: 12px 16px;
-    margin: 0;
-    box-sizing: border-box;
+    cursor: pointer;
     position: relative;
+    display: block;
 }
 
-/* CORREÇÃO CRÍTICA: Controla o texto interno do campo data no mobile */
+/* CORREÇÃO DO TEXTO INTERNO DO CAMPO DATA */
 .input-group input[type="date"]::-webkit-datetime-edit {
     padding: 0;
-    overflow: visible;
-    white-space: nowrap;
-    display: flex;
-    flex-wrap: nowrap;
+    color: #121212;
+    font-size: 1rem;
 }
 
 .input-group input[type="date"]::-webkit-datetime-edit-text,
 .input-group input[type="date"]::-webkit-datetime-edit-month-field,
 .input-group input[type="date"]::-webkit-datetime-edit-day-field,
 .input-group input[type="date"]::-webkit-datetime-edit-year-field {
+    color: #121212;
     font-size: 1rem;
     padding: 0 2px;
-    color: #121212;
-    display: inline-block;
 }
 
-/* Para Firefox */
-.input-group input[type="date"] {
-    font-size: 1rem;
-}
-
-/* Para navegadores que usam o seletor nativo */
+/* ESTILO DO ÍCONE DO CALENDÁRIO */
 .input-group input[type="date"]::-webkit-calendar-picker-indicator {
-    padding: 0;
-    margin-left: auto;
     cursor: pointer;
     opacity: 0.6;
-    flex-shrink: 0;
+    padding: 0;
+    margin-left: auto;
 }
 
 .input-group input[type="date"]::-webkit-calendar-picker-indicator:hover {
     opacity: 1;
 }
 
+/* PARA FIREFOX */
+.input-group input[type="date"] {
+    font-size: 1rem;
+}
+
+/* FOCUS PARA TODOS OS CAMPOS */
 .input-group input:focus,
 .input-group select:focus,
 .input-group input[type="date"]:focus {
@@ -145,45 +129,42 @@ body {
     background: #fff;
 }
 
-/* Estilo para o select de profissional */
-#profissional {
+/* ESTILO PARA O SELECT */
+#profissional,
+#servico {
     width: 100%;
-    max-width: 100%;
     padding: 12px 16px;
     border: 2px solid #e2e8f0;
     border-radius: 16px;
     font-size: 1rem;
-    transition: all 0.2s;
     font-family: inherit;
     background: #f8fafc;
     cursor: pointer;
-    box-sizing: border-box;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2310b981' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 16px center;
+    background-size: 16px;
 }
 
-#profissional:focus {
+#profissional:focus,
+#servico:focus {
     outline: none;
     border-color: #10b981;
     box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
-    background: #fff;
 }
 
-#profissional option {
-    padding: 10px;
-    font-size: 0.9rem;
-}
-
-/* Container dos horários */
+/* CONTAINER DOS HORÁRIOS */
 .horarios {
     display: flex;
     flex-direction: column;
     gap: 16px;
-    margin-top: 12px;
+    margin-top: 8px;
     min-height: 200px;
     width: 100%;
-    overflow-x: hidden;
 }
 
-/* Container dos botões */
 .botoes-horarios {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -191,7 +172,6 @@ body {
     width: 100%;
 }
 
-/* Estilos para os botões de horário */
 .horario-btn {
     padding: 12px 8px;
     background: #f1f5f9;
@@ -204,9 +184,6 @@ body {
     color: #121212;
     font-size: 0.9rem;
     font-family: inherit;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
 }
 
 .horario-btn:hover:not(:disabled) {
@@ -233,7 +210,7 @@ body {
     cursor: not-allowed;
 }
 
-/* Aviso de campos a preencher */
+/* AVISO DE CAMPOS */
 .aviso-campos {
     text-align: center;
     padding: 40px 20px;
@@ -241,7 +218,6 @@ body {
     border-radius: 16px;
     border: 2px dashed #cbd5e1;
     color: #10b981;
-    word-break: break-word;
 }
 
 .aviso-campos i {
@@ -254,7 +230,6 @@ body {
 .aviso-campos p {
     margin: 0;
     font-size: 0.95rem;
-    word-break: break-word;
 }
 
 .aviso-campos.erro {
@@ -267,7 +242,6 @@ body {
     color: #dc2626;
 }
 
-/* Loading */
 .loading-horarios {
     text-align: center;
     padding: 40px 20px;
@@ -279,22 +253,7 @@ body {
     font-size: 1.2rem;
 }
 
-/* Botão de recarregar */
-.btn-reload {
-    margin-top: 12px;
-    padding: 8px 16px;
-    background: #10b981;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 0.85rem;
-}
-
-.btn-reload:hover {
-    background: #059669;
-}
-
+/* BOTÃO PRINCIPAL */
 .btn-primary {
     width: 100%;
     padding: 14px;
@@ -322,14 +281,13 @@ body {
     transform: translateY(0);
 }
 
-/* Mensagens de sucesso/erro */
+/* MENSAGENS */
 #mensagem {
     padding: 12px;
     border-radius: 12px;
     text-align: center;
     font-weight: 600;
     margin-top: 16px;
-    word-break: break-word;
 }
 
 #mensagem.sucesso {
@@ -342,7 +300,6 @@ body {
     color: #dc2626;
 }
 
-/* Loading */
 .loading {
     text-align: center;
     padding: 12px;
@@ -354,27 +311,12 @@ body {
 }
 
 /* ============================================ */
-/* CORREÇÃO ESPECÍFICA PARA MOBILE - DATA NÃO VAZA */
+/* RESPONSIVIDADE MOBILE - CORREÇÃO DEFINITIVA */
 /* ============================================ */
-
-/* Para todos os dispositivos móveis */
-@media (max-width: 768px) {
-    .input-group input[type="date"] {
-        font-size: 0.9rem;
-        padding: 10px 12px;
-    }
-    
-    .input-group input[type="date"]::-webkit-datetime-edit {
-        white-space: nowrap;
-        overflow-x: auto;
-        overflow-y: hidden;
-        -webkit-overflow-scrolling: touch;
-    }
-}
 
 @media (max-width: 600px) {
     .container {
-        padding: 20px;
+        padding: 24px;
     }
     
     .profile h1 {
@@ -389,11 +331,9 @@ body {
     .horario-btn {
         padding: 10px 4px;
         font-size: 0.8rem;
-        white-space: normal;
-        word-break: break-word;
     }
     
-    /* CORREÇÃO PRINCIPAL DO CAMPO DATA NO MOBILE */
+    /* PADRONIZAÇÃO DE TODOS OS CAMPOS NO MOBILE */
     .input-group input,
     .input-group select,
     .input-group input[type="date"] {
@@ -401,28 +341,42 @@ body {
         padding: 10px 12px;
     }
     
-    .input-group {
+    /* CORREÇÃO ESPECÍFICA DO CAMPO DATA NO MOBILE */
+    .input-group input[type="date"] {
+        min-width: 0;
         width: 100%;
+    }
+    
+    .input-group input[type="date"]::-webkit-datetime-edit {
+        font-size: 0.85rem;
+        white-space: nowrap;
+        overflow-x: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .input-group input[type="date"]::-webkit-datetime-edit-text,
+    .input-group input[type="date"]::-webkit-datetime-edit-month-field,
+    .input-group input[type="date"]::-webkit-datetime-edit-day-field,
+    .input-group input[type="date"]::-webkit-datetime-edit-year-field {
+        font-size: 0.85rem;
+        padding: 0 1px;
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding: 20px;
     }
     
     .input-group input,
     .input-group select,
     .input-group input[type="date"] {
-        width: 100%;
-        min-width: 0;
+        font-size: 0.8rem;
+        padding: 8px 12px;
     }
     
-    /* Força o campo data a manter o texto dentro da caixa */
-    .input-group input[type="date"] {
-        max-width: 100%;
-        overflow-x: hidden;
-    }
-    
-    .input-group input[type="date"]::-webkit-datetime-edit {
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: calc(100% - 20px);
+    .input-group label {
+        font-size: 0.85rem;
     }
     
     .input-group input[type="date"]::-webkit-datetime-edit-text,
@@ -434,101 +388,47 @@ body {
     }
 }
 
-@media (max-width: 480px) {
-    .container {
-        padding: 16px;
-    }
-    
-    #profissional {
-        font-size: 0.9rem;
-        padding: 10px 14px;
-    }
-    
-    /* CORREÇÃO PARA TELAS PEQUENAS (iPhone SE, etc) */
-    .input-group input,
-    .input-group select,
-    .input-group input[type="date"] {
-        font-size: 0.75rem;
-        padding: 8px 10px;
-    }
-    
-    .input-group label {
-        font-size: 0.85rem;
-    }
-    
-    .input-group input[type="date"] {
-        min-width: 0;
-        width: 100%;
-        padding: 8px 10px;
-    }
-    
-    /* CRÍTICO: Força o texto a ficar dentro da caixa */
-    .input-group input[type="date"]::-webkit-datetime-edit {
-        white-space: nowrap;
-        overflow-x: hidden;
-        text-overflow: ellipsis;
-        max-width: 100%;
-    }
-    
-    .input-group input[type="date"]::-webkit-datetime-edit-text,
-    .input-group input[type="date"]::-webkit-datetime-edit-month-field,
-    .input-group input[type="date"]::-webkit-datetime-edit-day-field,
-    .input-group input[type="date"]::-webkit-datetime-edit-year-field {
-        font-size: 0.7rem;
-        padding: 0 1px;
-    }
-}
-
 @media (max-width: 450px) {
     .botoes-horarios {
         grid-template-columns: repeat(2, 1fr);
     }
     
     .horario-btn {
-        white-space: normal;
-        word-break: break-word;
         font-size: 0.75rem;
         padding: 8px 4px;
     }
 }
 
-/* Para telas MUITO pequenas (até 375px) */
 @media (max-width: 380px) {
     .container {
-        padding: 12px;
+        padding: 16px;
     }
     
     .input-group input,
     .input-group select,
     .input-group input[type="date"] {
         font-size: 0.7rem;
-        padding: 6px 8px;
+        padding: 8px 8px;
     }
     
     .input-group input[type="date"]::-webkit-datetime-edit-text,
     .input-group input[type="date"]::-webkit-datetime-edit-month-field,
     .input-group input[type="date"]::-webkit-datetime-edit-day-field,
     .input-group input[type="date"]::-webkit-datetime-edit-year-field {
-        font-size: 0.65rem;
+        font-size: 0.7rem;
         padding: 0 0px;
-    }
-    
-    /* Força ainda mais a contenção */
-    .input-group input[type="date"] {
-        padding: 6px 6px;
     }
 }
 
-/* CORREÇÃO ADICIONAL PARA iOS */
+/* CORREÇÃO ESPECIAL PARA iOS */
 @supports (-webkit-touch-callout: none) {
     .input-group input[type="date"] {
-        font-size: 0.85rem;
         min-height: 44px;
     }
     
     @media (max-width: 480px) {
         .input-group input[type="date"] {
-            font-size: 0.75rem;
+            font-size: 0.8rem;
         }
     }
 }
