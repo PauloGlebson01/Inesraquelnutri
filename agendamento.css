@@ -67,10 +67,9 @@ body {
     flex-shrink: 0;
 }
 
-/* Estilo padrão para todos os inputs e selects */
+/* Estilo padrão para TODOS os inputs e selects */
 .input-group input,
-.input-group select,
-.input-group .data-display {
+.input-group select {
     width: 100%;
     max-width: 100%;
     padding: 12px 16px;
@@ -83,60 +82,58 @@ body {
     box-sizing: border-box;
 }
 
-/* Estilo específico para o campo de data */
+/* Estilo específico para o campo de data - CORREÇÃO MOBILE */
 .input-group input[type="date"] {
     width: 100%;
     min-width: 0;
+    max-width: 100%;
     display: block;
-    font-size: 0.95rem;
+    font-size: 1rem;
     color: #121212;
-}
-
-/* Para quando a data é exibida como texto (fallback) */
-.input-group .data-display {
     background: #f8fafc;
-    color: #121212;
-    cursor: default;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+    border: 2px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 12px 16px;
+    margin: 0;
+    box-sizing: border-box;
+    position: relative;
 }
 
-.input-group .data-display span {
-    flex: 1;
-}
-
-.input-group .data-display i {
-    color: #10b981;
-    font-size: 1.1rem;
-}
-
-/* Corrige o texto dentro do campo de data em diferentes navegadores */
+/* CORREÇÃO CRÍTICA: Controla o texto interno do campo data no mobile */
 .input-group input[type="date"]::-webkit-datetime-edit {
     padding: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    overflow: visible;
     white-space: nowrap;
+    display: flex;
+    flex-wrap: nowrap;
 }
 
 .input-group input[type="date"]::-webkit-datetime-edit-text,
 .input-group input[type="date"]::-webkit-datetime-edit-month-field,
 .input-group input[type="date"]::-webkit-datetime-edit-day-field,
 .input-group input[type="date"]::-webkit-datetime-edit-year-field {
-    font-size: 0.9rem;
-    padding: 0 1px;
+    font-size: 1rem;
+    padding: 0 2px;
+    color: #121212;
+    display: inline-block;
 }
 
 /* Para Firefox */
 .input-group input[type="date"] {
-    font-size: 0.9rem;
+    font-size: 1rem;
 }
 
 /* Para navegadores que usam o seletor nativo */
 .input-group input[type="date"]::-webkit-calendar-picker-indicator {
     padding: 0;
-    margin-left: 4px;
+    margin-left: auto;
     cursor: pointer;
+    opacity: 0.6;
+    flex-shrink: 0;
+}
+
+.input-group input[type="date"]::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
 }
 
 .input-group input:focus,
@@ -356,7 +353,25 @@ body {
     margin-right: 8px;
 }
 
-/* RESPONSIVIDADE - CORREÇÃO PRINCIPAL PARA MOBILE */
+/* ============================================ */
+/* CORREÇÃO ESPECÍFICA PARA MOBILE - DATA NÃO VAZA */
+/* ============================================ */
+
+/* Para todos os dispositivos móveis */
+@media (max-width: 768px) {
+    .input-group input[type="date"] {
+        font-size: 0.9rem;
+        padding: 10px 12px;
+    }
+    
+    .input-group input[type="date"]::-webkit-datetime-edit {
+        white-space: nowrap;
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+    }
+}
+
 @media (max-width: 600px) {
     .container {
         padding: 20px;
@@ -378,16 +393,14 @@ body {
         word-break: break-word;
     }
     
-    /* PADRONIZAÇÃO E CORREÇÃO DO CAMPO DATA */
+    /* CORREÇÃO PRINCIPAL DO CAMPO DATA NO MOBILE */
     .input-group input,
     .input-group select,
-    .input-group .data-display,
     .input-group input[type="date"] {
         font-size: 0.85rem;
         padding: 10px 12px;
     }
     
-    /* Força todos os campos a respeitar o container */
     .input-group {
         width: 100%;
     }
@@ -399,11 +412,17 @@ body {
         min-width: 0;
     }
     
-    /* Corrige o texto da data para não vazar */
+    /* Força o campo data a manter o texto dentro da caixa */
+    .input-group input[type="date"] {
+        max-width: 100%;
+        overflow-x: hidden;
+    }
+    
     .input-group input[type="date"]::-webkit-datetime-edit {
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+        max-width: calc(100% - 20px);
     }
     
     .input-group input[type="date"]::-webkit-datetime-edit-text,
@@ -411,7 +430,7 @@ body {
     .input-group input[type="date"]::-webkit-datetime-edit-day-field,
     .input-group input[type="date"]::-webkit-datetime-edit-year-field {
         font-size: 0.8rem;
-        padding: 0;
+        padding: 0 1px;
     }
 }
 
@@ -425,23 +444,38 @@ body {
         padding: 10px 14px;
     }
     
-    /* Ajuste específico para telas pequenas */
+    /* CORREÇÃO PARA TELAS PEQUENAS (iPhone SE, etc) */
     .input-group input,
     .input-group select,
-    .input-group .data-display,
     .input-group input[type="date"] {
-        font-size: 0.8rem;
-        padding: 8px 12px;
+        font-size: 0.75rem;
+        padding: 8px 10px;
     }
     
     .input-group label {
         font-size: 0.85rem;
     }
     
-    /* Força o campo data a ter o mesmo estilo dos outros */
     .input-group input[type="date"] {
         min-width: 0;
         width: 100%;
+        padding: 8px 10px;
+    }
+    
+    /* CRÍTICO: Força o texto a ficar dentro da caixa */
+    .input-group input[type="date"]::-webkit-datetime-edit {
+        white-space: nowrap;
+        overflow-x: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+    }
+    
+    .input-group input[type="date"]::-webkit-datetime-edit-text,
+    .input-group input[type="date"]::-webkit-datetime-edit-month-field,
+    .input-group input[type="date"]::-webkit-datetime-edit-day-field,
+    .input-group input[type="date"]::-webkit-datetime-edit-year-field {
+        font-size: 0.7rem;
+        padding: 0 1px;
     }
 }
 
@@ -458,7 +492,7 @@ body {
     }
 }
 
-/* Para telas muito pequenas (ex: iPhone SE, 375px) */
+/* Para telas MUITO pequenas (até 375px) */
 @media (max-width: 380px) {
     .container {
         padding: 12px;
@@ -466,27 +500,35 @@ body {
     
     .input-group input,
     .input-group select,
-    .input-group .data-display,
     .input-group input[type="date"] {
-        font-size: 0.75rem;
-        padding: 8px 8px;
+        font-size: 0.7rem;
+        padding: 6px 8px;
     }
     
     .input-group input[type="date"]::-webkit-datetime-edit-text,
     .input-group input[type="date"]::-webkit-datetime-edit-month-field,
     .input-group input[type="date"]::-webkit-datetime-edit-day-field,
     .input-group input[type="date"]::-webkit-datetime-edit-year-field {
-        font-size: 0.7rem;
-        padding: 0;
+        font-size: 0.65rem;
+        padding: 0 0px;
+    }
+    
+    /* Força ainda mais a contenção */
+    .input-group input[type="date"] {
+        padding: 6px 6px;
     }
 }
 
-/* Estilo para o ícone do calendário no campo data */
-.input-group input[type="date"]::-webkit-calendar-picker-indicator {
-    opacity: 0.6;
-    cursor: pointer;
-}
-
-.input-group input[type="date"]::-webkit-calendar-picker-indicator:hover {
-    opacity: 1;
+/* CORREÇÃO ADICIONAL PARA iOS */
+@supports (-webkit-touch-callout: none) {
+    .input-group input[type="date"] {
+        font-size: 0.85rem;
+        min-height: 44px;
+    }
+    
+    @media (max-width: 480px) {
+        .input-group input[type="date"] {
+            font-size: 0.75rem;
+        }
+    }
 }
