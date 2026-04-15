@@ -67,8 +67,10 @@ body {
     flex-shrink: 0;
 }
 
+/* Estilo padrão para todos os inputs e selects */
 .input-group input,
-.input-group select {
+.input-group select,
+.input-group .data-display {
     width: 100%;
     max-width: 100%;
     padding: 12px 16px;
@@ -81,12 +83,32 @@ body {
     box-sizing: border-box;
 }
 
-/* CORREÇÃO PRINCIPAL: Estilo específico para o campo de data */
+/* Estilo específico para o campo de data */
 .input-group input[type="date"] {
     width: 100%;
     min-width: 0;
     display: block;
     font-size: 0.95rem;
+    color: #121212;
+}
+
+/* Para quando a data é exibida como texto (fallback) */
+.input-group .data-display {
+    background: #f8fafc;
+    color: #121212;
+    cursor: default;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.input-group .data-display span {
+    flex: 1;
+}
+
+.input-group .data-display i {
+    color: #10b981;
+    font-size: 1.1rem;
 }
 
 /* Corrige o texto dentro do campo de data em diferentes navegadores */
@@ -114,14 +136,43 @@ body {
 .input-group input[type="date"]::-webkit-calendar-picker-indicator {
     padding: 0;
     margin-left: 4px;
+    cursor: pointer;
 }
 
 .input-group input:focus,
-.input-group select:focus {
+.input-group select:focus,
+.input-group input[type="date"]:focus {
     outline: none;
     border-color: #10b981;
     box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
     background: #fff;
+}
+
+/* Estilo para o select de profissional */
+#profissional {
+    width: 100%;
+    max-width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #e2e8f0;
+    border-radius: 16px;
+    font-size: 1rem;
+    transition: all 0.2s;
+    font-family: inherit;
+    background: #f8fafc;
+    cursor: pointer;
+    box-sizing: border-box;
+}
+
+#profissional:focus {
+    outline: none;
+    border-color: #10b981;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+    background: #fff;
+}
+
+#profissional option {
+    padding: 10px;
+    font-size: 0.9rem;
 }
 
 /* Container dos horários */
@@ -305,34 +356,7 @@ body {
     margin-right: 8px;
 }
 
-/* Estilo para o select de profissional */
-#profissional {
-    width: 100%;
-    max-width: 100%;
-    padding: 12px 16px;
-    border: 2px solid #e2e8f0;
-    border-radius: 16px;
-    font-size: 1rem;
-    transition: all 0.2s;
-    font-family: inherit;
-    background: #f8fafc;
-    cursor: pointer;
-    box-sizing: border-box;
-}
-
-#profissional:focus {
-    outline: none;
-    border-color: #10b981;
-    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
-    background: #fff;
-}
-
-#profissional option {
-    padding: 10px;
-    font-size: 0.9rem;
-}
-
-/* CORREÇÃO PRINCIPAL PARA MOBILE */
+/* RESPONSIVIDADE - CORREÇÃO PRINCIPAL PARA MOBILE */
 @media (max-width: 600px) {
     .container {
         padding: 20px;
@@ -354,19 +378,23 @@ body {
         word-break: break-word;
     }
     
-    /* CORREÇÃO DO CAMPO DATA NO MOBILE */
+    /* PADRONIZAÇÃO E CORREÇÃO DO CAMPO DATA */
+    .input-group input,
+    .input-group select,
+    .input-group .data-display,
     .input-group input[type="date"] {
         font-size: 0.85rem;
         padding: 10px 12px;
     }
     
-    /* Força o campo de data a respeitar o container */
+    /* Força todos os campos a respeitar o container */
     .input-group {
         width: 100%;
     }
     
     .input-group input,
-    .input-group select {
+    .input-group select,
+    .input-group input[type="date"] {
         width: 100%;
         min-width: 0;
     }
@@ -397,14 +425,23 @@ body {
         padding: 10px 14px;
     }
     
-    /* Ajuste ainda mais específico para telas muito pequenas */
+    /* Ajuste específico para telas pequenas */
+    .input-group input,
+    .input-group select,
+    .input-group .data-display,
     .input-group input[type="date"] {
         font-size: 0.8rem;
-        padding: 8px 10px;
+        padding: 8px 12px;
     }
     
     .input-group label {
         font-size: 0.85rem;
+    }
+    
+    /* Força o campo data a ter o mesmo estilo dos outros */
+    .input-group input[type="date"] {
+        min-width: 0;
+        width: 100%;
     }
 }
 
@@ -424,9 +461,12 @@ body {
 /* Para telas muito pequenas (ex: iPhone SE, 375px) */
 @media (max-width: 380px) {
     .container {
-        padding: 14px;
+        padding: 12px;
     }
     
+    .input-group input,
+    .input-group select,
+    .input-group .data-display,
     .input-group input[type="date"] {
         font-size: 0.75rem;
         padding: 8px 8px;
@@ -437,5 +477,16 @@ body {
     .input-group input[type="date"]::-webkit-datetime-edit-day-field,
     .input-group input[type="date"]::-webkit-datetime-edit-year-field {
         font-size: 0.7rem;
+        padding: 0;
     }
+}
+
+/* Estilo para o ícone do calendário no campo data */
+.input-group input[type="date"]::-webkit-calendar-picker-indicator {
+    opacity: 0.6;
+    cursor: pointer;
+}
+
+.input-group input[type="date"]::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
 }
