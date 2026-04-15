@@ -22,6 +22,8 @@ body {
     padding: 32px;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
     transition: all 0.3s ease;
+    overflow-x: hidden; /* Evita vazamento horizontal */
+    word-wrap: break-word;
 }
 
 .profile {
@@ -43,6 +45,7 @@ body {
 
 .input-group {
     margin-bottom: 20px;
+    overflow-x: hidden; /* Evita vazamento */
 }
 
 .input-group label {
@@ -70,6 +73,22 @@ body {
     transition: all 0.2s;
     font-family: inherit;
     background: #f8fafc;
+    box-sizing: border-box;
+}
+
+/* Estilo específico para o campo de data */
+input[type="date"] {
+    width: 100%;
+    min-width: 0; /* Permite que o campo encolha no mobile */
+    display: block;
+}
+
+/* Ajuste para o placeholder do campo date no mobile */
+input[type="date"]::-webkit-datetime-edit-text,
+input[type="date"]::-webkit-datetime-edit-month-field,
+input[type="date"]::-webkit-datetime-edit-day-field,
+input[type="date"]::-webkit-datetime-edit-year-field {
+    font-size: 0.9rem;
 }
 
 .input-group input:focus,
@@ -80,308 +99,15 @@ body {
     background: #fff;
 }
 
-.horarios {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
-    margin-top: 8px;
-}
-
-.horario-item {
-    padding: 12px 8px;
-    background: #f1f5f9;
-    border: 2px solid #e2e8f0;
-    border-radius: 12px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.2s;
-    font-weight: 500;
-    color: #121212;
-}
-
-.horario-item:hover {
-    background: #e2e8f0;
-    transform: translateY(-2px);
-}
-
-.horario-item.selected {
-    background: #10b981;
-    border-color: #10b981;
-    color: white;
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-}
-
-.horario-item.disabled {
-    background: #e2e8f0;
-    color: #94a3b8;
-    cursor: not-allowed;
-    opacity: 0.6;
-    text-decoration: line-through;
-}
-
-.horario-item.disabled:hover {
-    transform: none;
-    background: #e2e8f0;
-}
-
-.btn-primary {
-    width: 100%;
-    padding: 14px;
-    background: linear-gradient(135deg, #10b981, #059669);
-    color: white;
-    border: none;
-    border-radius: 16px;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s;
-    margin-top: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-}
-
-.btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.4);
-}
-
-.btn-primary:active {
-    transform: translateY(0);
-}
-
-.loading {
-    padding: 12px;
-    background: #f1f5f9;
-    border-radius: 12px;
-    color: #10b981;
-}
-
-.loading i {
-    margin-right: 8px;
-}
-
-#mensagem {
-    padding: 12px;
-    border-radius: 12px;
-}
-
-#mensagem.sucesso {
-    background: #dcfce7;
-    color: #15803d;
-}
-
-#mensagem.erro {
-    background: #fee2e2;
-    color: #dc2626;
-}
-
-@media (max-width: 480px) {
-    .container {
-        padding: 24px;
-    }
-    
-    .horarios {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    
-    .profile h1 {
-        font-size: 1.5rem;
-    }
-}
-
-/* Estilos para os botões de horário */
-.horario-btn {
-    padding: 12px 8px;
-    background: #f1f5f9;
-    border: 2px solid #e2e8f0;
-    border-radius: 12px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.2s;
-    font-weight: 500;
-    color: #10b981;
-    font-size: 0.9rem;
-}
-
-.horario-btn:hover:not(:disabled) {
-    background: #e2e8f0;
-    transform: translateY(-2px);
-}
-
-.horario-btn.selecionado {
-    background: #10b981;
-    border-color: #10b981;
-    color: white;
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-}
-
-.horario-btn.indisponivel {
-    background: #e2e8f0;
-    color: #94a3b8;
-    cursor: not-allowed;
-    opacity: 0.6;
-    text-decoration: line-through;
-}
-
-.loading-horarios {
-    grid-column: 1 / -1;
-    text-align: center;
-    padding: 20px;
-    color: #10b981;
-}
-
-.loading-horarios i {
-    margin-right: 8px;
-}
-
-/* Mensagens de sucesso/erro */
-#mensagem {
-    padding: 12px;
-    border-radius: 12px;
-    text-align: center;
-    font-weight: 600;
-    margin-top: 16px;
-}
-
-#mensagem.sucesso {
-    background: #dcfce7;
-    color: #15803d;
-}
-
-#mensagem.erro {
-    background: #fee2e2;
-    color: #dc2626;
-}
-
-/* Loading */
-.loading {
-    text-align: center;
-    padding: 12px;
-    color: #10b981;
-}
-
-.loading i {
-    margin-right: 8px;
-}
-
-/* Container dos horários */
-.horarios {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 12px;
-    margin-top: 12px;
-    min-height: 200px;
-}
-
-/* Estilos para os botões de horário */
-.horario-btn {
-    padding: 12px 8px;
-    background: #f1f5f9;
-    border: 2px solid #e2e8f0;
-    border-radius: 12px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.2s;
-    font-weight: 500;
-    color: #334155;
-    font-size: 0.9rem;
-    font-family: inherit;
-}
-
-.horario-btn:hover:not(:disabled) {
-    background: #e2e8f0;
-    transform: translateY(-2px);
-}
-
-.horario-btn.selecionado {
-    background: #10b981;
-    border-color: #10b981;
-    color: white;
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-}
-
-.horario-btn.indisponivel {
-    background: #e2e8f0;
-    color: #94a3b8;
-    cursor: not-allowed;
-    opacity: 0.6;
-    text-decoration: line-through;
-}
-
-.horario-btn:disabled {
-    cursor: not-allowed;
-}
-
-.loading-horarios {
-    grid-column: 1 / -1;
-    text-align: center;
-    padding: 30px;
-    color: #10b981;
-}
-
-.loading-horarios i {
-    margin-right: 8px;
-    font-size: 1.2rem;
-}
-
-/* Mensagens de sucesso/erro */
-#mensagem {
-    padding: 12px;
-    border-radius: 12px;
-    text-align: center;
-    font-weight: 600;
-    margin-top: 16px;
-}
-
-#mensagem.sucesso {
-    background: #dcfce7;
-    color: #15803d;
-}
-
-#mensagem.erro {
-    background: #fee2e2;
-    color: #dc2626;
-}
-
-/* Loading */
-.loading {
-    text-align: center;
-    padding: 12px;
-    color: #10b981;
-}
-
-.loading i {
-    margin-right: 8px;
-}
-
-/* Responsividade */
-@media (max-width: 600px) {
-    .horarios {
-        grid-template-columns: repeat(3, 1fr);
-        gap: 8px;
-    }
-    
-    .horario-btn {
-        padding: 10px 4px;
-        font-size: 0.8rem;
-    }
-}
-
-@media (max-width: 450px) {
-    .horarios {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-/* Container dos horários */
+/* Container dos horários - versão corrigida sem vazamento */
 .horarios {
     display: flex;
     flex-direction: column;
     gap: 16px;
     margin-top: 12px;
     min-height: 200px;
+    width: 100%;
+    overflow-x: hidden;
 }
 
 /* Container dos botões */
@@ -389,6 +115,7 @@ body {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 12px;
+    width: 100%;
 }
 
 /* Estilos para os botões de horário */
@@ -404,6 +131,9 @@ body {
     color: #121212;
     font-size: 0.9rem;
     font-family: inherit;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .horario-btn:hover:not(:disabled) {
@@ -438,6 +168,7 @@ body {
     border-radius: 16px;
     border: 2px dashed #cbd5e1;
     color: #10b981;
+    word-break: break-word;
 }
 
 .aviso-campos i {
@@ -490,23 +221,62 @@ body {
     background: #059669;
 }
 
-/* Responsividade */
-@media (max-width: 600px) {
-    .botoes-horarios {
-        grid-template-columns: repeat(3, 1fr);
-        gap: 8px;
-    }
-    
-    .horario-btn {
-        padding: 10px 4px;
-        font-size: 0.8rem;
-    }
+.btn-primary {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    border: none;
+    border-radius: 16px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-top: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
 }
 
-@media (max-width: 450px) {
-    .botoes-horarios {
-        grid-template-columns: repeat(2, 1fr);
-    }
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.4);
+}
+
+.btn-primary:active {
+    transform: translateY(0);
+}
+
+/* Mensagens de sucesso/erro */
+#mensagem {
+    padding: 12px;
+    border-radius: 12px;
+    text-align: center;
+    font-weight: 600;
+    margin-top: 16px;
+    word-break: break-word;
+}
+
+#mensagem.sucesso {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+#mensagem.erro {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+/* Loading */
+.loading {
+    text-align: center;
+    padding: 12px;
+    color: #10b981;
+}
+
+.loading i {
+    margin-right: 8px;
 }
 
 /* Estilo para o select de profissional */
@@ -520,6 +290,7 @@ body {
     font-family: inherit;
     background: #f8fafc;
     cursor: pointer;
+    box-sizing: border-box;
 }
 
 #profissional:focus {
@@ -534,10 +305,57 @@ body {
     font-size: 0.9rem;
 }
 
-/* Ajuste no layout para telas menores */
+/* Responsividade */
+@media (max-width: 600px) {
+    .container {
+        padding: 24px;
+    }
+    
+    .profile h1 {
+        font-size: 1.5rem;
+    }
+    
+    .botoes-horarios {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+    }
+    
+    .horario-btn {
+        padding: 10px 4px;
+        font-size: 0.8rem;
+        white-space: normal; /* Permite quebra de linha no mobile */
+        word-break: keep-all;
+    }
+    
+    /* Ajuste específico para o campo de data no mobile */
+    input[type="date"] {
+        font-size: 0.85rem;
+    }
+    
+    input[type="date"]::-webkit-datetime-edit-text,
+    input[type="date"]::-webkit-datetime-edit-month-field,
+    input[type="date"]::-webkit-datetime-edit-day-field,
+    input[type="date"]::-webkit-datetime-edit-year-field {
+        font-size: 0.85rem;
+    }
+}
+
 @media (max-width: 480px) {
     #profissional {
         font-size: 0.9rem;
         padding: 10px 14px;
+    }
+}
+
+@media (max-width: 450px) {
+    .botoes-horarios {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .horario-btn {
+        white-space: normal;
+        word-break: break-word;
+        font-size: 0.75rem;
+        padding: 8px 4px;
     }
 }
