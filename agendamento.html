@@ -1,84 +1,82 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
     <meta charset="UTF-8">
-    <title>Agendar Consulta | Inês Raquel</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes">
+    <title>Agendar Consulta | Inês Raquel - Nutrição</title>
+    <!-- Font Awesome 6 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <!-- CSS Principal -->
     <link rel="stylesheet" href="agendamento.css">
     <link rel="icon" type="image/png" href="./assets/Nutri-icon.png">
 </head>
+<body>
+<div class="container">
+    <header class="profile">
+        <h1>📆 Agende sua Consulta</h1>
+        <p class="subtitle">Escolha o plano, o nutricionista e o melhor horário para você.</p>
+    </header>
 
-<body class="light">
-    <div class="container">
-        <header class="profile">
-            <h1>📆 Agende sua Consulta</h1>
-            <p class="subtitle">Escolha o plano, o nutricionista e o melhor horário para você.</p>
-        </header>
-
-        <form id="formAgendamento">
-            <div class="input-group">
-                <label for="nome"><i class="fa-solid fa-user"></i> Seu Nome Completo</label>
-                <input type="text" id="nome" placeholder="Ex: Maria Silva" required>
-            </div>
-
-            <div class="input-group">
-                <label for="telefone"><i class="fa-brands fa-whatsapp"></i> WhatsApp para Contato</label>
-                <input type="tel" id="telefone" placeholder="(83) 99999-9999" required>
-            </div>
-
-            <div class="input-group">
-                <label for="servico"><i class="fa-solid fa-apple-whole"></i> Plano Desejado</label>
-                <select id="servico" required>
-                    <option value="">Selecione um plano</option>
-                    <option value="Acompanhamento Mensal" data-preco="180">Acompanhamento Mensal - R$ 180</option>
-
-                    <option value="Acompanhamento Trimestral" data-preco="500">Acompanhamento Trimestral - R$ 500
-                    </option>
-
-                    <option value="Acompanhamento Semestral" data-preco="1000">Acompanhamento Semestral - R$ 1000
-                    </option>
-
-                    <option value="Consultoria Online" data-preco="140">Consultoria Online - R$ 140
-                    </option>
-                </select>
-            </div>
-
-            <div class="input-group">
-                <label for="profissional"><i class="fa-solid fa-user-nurse"></i> Escolha o Nutricionista</label>
-                <select id="profissional" required>
-                    <option value="">Selecione um nutricionista</option>
-                    <option value="Dra. Inês Raquel">Dra. Inês Raquel (CRN6/48555)</option>
-                </select>
-            </div>
-
-            <div class="input-group">
-                <label for="data"><i class="fa-solid fa-calendar-day"></i> Data da Consulta</label>
-                <input type="date" id="data" required>
-            </div>
-
-            <div class="input-group">
-                <label><i class="fa-solid fa-clock"></i> Horários Disponíveis</label>
-                <div id="horarios" class="horarios">
-                    <!-- Os horários serão carregados via JavaScript -->
-                </div>
-                <input type="hidden" id="horario" required>
-            </div>
-
-            <button type="submit" class="btn-primary">
-                <i class="fa-solid fa-check-circle"></i> Confirmar Agendamento
-            </button>
-        </form>
-
-        <div id="loading" class="loading" style="display:none; text-align: center; margin-top: 15px;">
-            <i class="fa-solid fa-spinner fa-spin"></i> Processando agendamento...
+    <form id="formAgendamento">
+        <div class="input-group">
+            <label for="nome"><i class="fa-solid fa-user"></i> Seu Nome Completo</label>
+            <input type="text" id="nome" placeholder="Ex: Maria Silva" autocomplete="name" required>
         </div>
 
-        <div id="mensagem" style="text-align: center; margin-top: 15px; font-weight: 600;"></div>
+        <div class="input-group">
+            <label for="telefone"><i class="fa-brands fa-whatsapp"></i> WhatsApp para Contato</label>
+            <input type="tel" id="telefone" placeholder="(83) 99999-9999" autocomplete="tel" required>
+        </div>
+
+        <div class="input-group">
+            <label for="servico"><i class="fa-solid fa-apple-whole"></i> Plano Desejado</label>
+            <select id="servico" required>
+                <option value="">Selecione um plano</option>
+                <option value="Acompanhamento Mensal" data-preco="180">Acompanhamento Mensal - R$ 180</option>
+                <option value="Acompanhamento Trimestral" data-preco="500">Acompanhamento Trimestral - R$ 500</option>
+                <option value="Acompanhamento Semestral" data-preco="1000">Acompanhamento Semestral - R$ 1000</option>
+                <option value="Consultoria Online" data-preco="140">Consultoria Online - R$ 140</option>
+            </select>
+        </div>
+
+        <div class="input-group">
+            <label for="profissional"><i class="fa-solid fa-user-nurse"></i> Escolha o Nutricionista</label>
+            <select id="profissional" required>
+                <option value="">Selecione um nutricionista</option>
+                <option value="Dra. Inês Raquel">Dra. Inês Raquel (CRN6/48555)</option>
+            </select>
+        </div>
+
+        <div class="input-group">
+            <label for="data"><i class="fa-solid fa-calendar-day"></i> Data da Consulta</label>
+            <input type="date" id="data" required>
+        </div>
+
+        <div class="input-group">
+            <label><i class="fa-solid fa-clock"></i> Horários Disponíveis</label>
+            <div id="horarios" class="horarios">
+                <div class="aviso-campos">
+                    <i class="fa-regular fa-calendar-circle-plus"></i>
+                    <p>Selecione uma data para visualizar os horários disponíveis</p>
+                </div>
+            </div>
+            <input type="hidden" id="horario" required>
+        </div>
+
+        <button type="submit" class="btn-primary">
+            <i class="fa-solid fa-check-circle"></i> Confirmar Agendamento
+        </button>
+    </form>
+
+    <div id="loading" class="loading" style="display:none;">
+        <i class="fa-solid fa-spinner fa-spin"></i> Processando agendamento...
     </div>
+    <div id="mensagem"></div>
+    <footer>🔒 Agendamento seguro · Horários atualizados em tempo real</footer>
+</div>
 
-    <script type="module" src="agendamento.js"></script>
+<script type="module" src="agendamento.js"></script>
 </body>
-
 </html>
