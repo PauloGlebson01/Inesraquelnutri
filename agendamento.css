@@ -63,10 +63,20 @@ body {
     width: 20px;
 }
 
-/* ESTILO PADRÃO UNIFICADO PARA TODOS OS CAMPOS */
+/* ============================================ */
+/* CORREÇÃO DEFINITIVA - TODOS OS CAMPOS IGUAIS */
+/* ============================================ */
+
+/* Wrapper para o campo date - garantia de consistência */
+.date-wrapper {
+    width: 100%;
+    display: block;
+}
+
+/* ESTILO BASE PARA TODOS OS CAMPOS */
 .input-group input,
 .input-group select,
-.input-group input[type="date"] {
+.date-wrapper input[type="date"] {
     width: 100%;
     padding: 12px 16px;
     border: 2px solid #e2e8f0;
@@ -78,46 +88,55 @@ body {
     box-sizing: border-box;
     height: auto;
     line-height: 1.4;
+    margin: 0;
 }
 
-/* CORREÇÃO ESPECÍFICA PARA CAMPO DATE */
-.input-group input[type="date"] {
+/* CORREÇÃO ESPECÍFICA DO CAMPO DATE - FORÇANDO MESMO TAMANHO */
+.date-wrapper input[type="date"] {
     appearance: none;
     -webkit-appearance: none;
     display: inline-block;
     color: #0f172a;
     cursor: pointer;
     position: relative;
+    background: #f9fafb;
 }
 
-.input-group input[type="date"]::-webkit-datetime-edit {
+/* Estilização do texto interno do date para TODOS navegadores */
+.date-wrapper input[type="date"]::-webkit-datetime-edit {
     padding: 0;
     color: #0f172a;
     font-size: 1rem;
     font-family: inherit;
 }
 
-.input-group input[type="date"]::-webkit-datetime-edit-text,
-.input-group input[type="date"]::-webkit-datetime-edit-month-field,
-.input-group input[type="date"]::-webkit-datetime-edit-day-field,
-.input-group input[type="date"]::-webkit-datetime-edit-year-field {
+.date-wrapper input[type="date"]::-webkit-datetime-edit-text,
+.date-wrapper input[type="date"]::-webkit-datetime-edit-month-field,
+.date-wrapper input[type="date"]::-webkit-datetime-edit-day-field,
+.date-wrapper input[type="date"]::-webkit-datetime-edit-year-field {
     color: #0f172a;
     font-size: 1rem;
     padding: 0 2px;
     font-family: inherit;
 }
 
-.input-group input[type="date"]::-webkit-calendar-picker-indicator {
+/* Ícone do calendário */
+.date-wrapper input[type="date"]::-webkit-calendar-picker-indicator {
     cursor: pointer;
     opacity: 0.6;
     padding: 4px;
     margin-left: auto;
 }
 
-/* FOCUS */
+/* Firefox */
+.date-wrapper input[type="date"] {
+    font-size: 1rem;
+}
+
+/* FOCUS para todos os campos */
 .input-group input:focus,
 .input-group select:focus,
-.input-group input[type="date"]:focus {
+.date-wrapper input[type="date"]:focus {
     outline: none;
     border-color: #10b981;
     box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
@@ -211,11 +230,27 @@ body {
     box-shadow: 0 12px 20px -8px rgba(16, 185, 129, 0.4);
 }
 
+.btn-primary:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
 .loading {
     text-align: center;
     padding: 12px;
     color: #10b981;
     font-weight: 500;
+}
+
+.loading-horarios {
+    text-align: center;
+    padding: 40px 20px;
+    color: #10b981;
+}
+
+.loading-horarios i {
+    margin-right: 8px;
 }
 
 #mensagem {
@@ -254,6 +289,15 @@ body {
     margin-bottom: 12px;
 }
 
+.aviso-campos.erro {
+    border-color: #fecaca;
+    background: #fef2f2;
+}
+
+.aviso-campos.erro i {
+    color: #dc2626;
+}
+
 footer {
     text-align: center;
     margin-top: 24px;
@@ -261,7 +305,10 @@ footer {
     color: #94a3b8;
 }
 
-/* ========== RESPONSIVIDADE MOBILE ========== */
+/* ============================================ */
+/* RESPONSIVIDADE MOBILE - CORREÇÃO DEFINITIVA */
+/* ============================================ */
+
 @media (max-width: 600px) {
     .container {
         padding: 24px;
@@ -277,14 +324,24 @@ footer {
         padding: 10px 4px;
         font-size: 0.8rem;
     }
+    
+    /* FORÇA todos os campos com mesmo tamanho no mobile */
     .input-group input,
     .input-group select,
-    .input-group input[type="date"] {
+    .date-wrapper input[type="date"] {
         padding: 11px 14px;
         font-size: 0.9rem;
         min-height: 48px;
     }
-    .input-group input[type="date"]::-webkit-datetime-edit {
+    
+    .date-wrapper input[type="date"]::-webkit-datetime-edit {
+        font-size: 0.9rem;
+    }
+    
+    .date-wrapper input[type="date"]::-webkit-datetime-edit-text,
+    .date-wrapper input[type="date"]::-webkit-datetime-edit-month-field,
+    .date-wrapper input[type="date"]::-webkit-datetime-edit-day-field,
+    .date-wrapper input[type="date"]::-webkit-datetime-edit-year-field {
         font-size: 0.9rem;
     }
 }
@@ -297,13 +354,31 @@ footer {
         grid-template-columns: repeat(2, 1fr);
         gap: 10px;
     }
+    
     .input-group input,
     .input-group select,
-    .input-group input[type="date"] {
+    .date-wrapper input[type="date"] {
         padding: 10px 12px;
         font-size: 0.85rem;
         min-height: 46px;
     }
+    
+    .input-group label {
+        font-size: 0.85rem;
+    }
+    
+    .date-wrapper input[type="date"]::-webkit-datetime-edit {
+        font-size: 0.85rem;
+    }
+    
+    .date-wrapper input[type="date"]::-webkit-datetime-edit-text,
+    .date-wrapper input[type="date"]::-webkit-datetime-edit-month-field,
+    .date-wrapper input[type="date"]::-webkit-datetime-edit-day-field,
+    .date-wrapper input[type="date"]::-webkit-datetime-edit-year-field {
+        font-size: 0.85rem;
+        padding: 0 1px;
+    }
+    
     .horario-btn {
         font-size: 0.75rem;
         padding: 8px 4px;
@@ -314,18 +389,29 @@ footer {
     .container {
         padding: 16px;
     }
+    
     .input-group input,
     .input-group select,
-    .input-group input[type="date"] {
+    .date-wrapper input[type="date"] {
         padding: 8px 10px;
         font-size: 0.8rem;
         min-height: 44px;
     }
+    
+    .date-wrapper input[type="date"]::-webkit-datetime-edit {
+        font-size: 0.8rem;
+    }
 }
 
-/* CORREÇÃO PARA iOS */
+/* CORREÇÃO ESPECIAL PARA iOS (Safari) */
 @supports (-webkit-touch-callout: none) {
-    .input-group input[type="date"] {
+    .date-wrapper input[type="date"] {
         min-height: 48px;
+    }
+    
+    @media (max-width: 480px) {
+        .date-wrapper input[type="date"] {
+            min-height: 46px;
+        }
     }
 }

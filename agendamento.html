@@ -51,7 +51,9 @@
 
         <div class="input-group">
             <label for="data"><i class="fa-solid fa-calendar-day"></i> Data da Consulta</label>
-            <input type="date" id="data" required>
+            <div class="date-wrapper">
+                <input type="date" id="data" required>
+            </div>
         </div>
 
         <div class="input-group">
@@ -59,7 +61,7 @@
             <div id="horarios" class="horarios">
                 <div class="aviso-campos">
                     <i class="fa-regular fa-calendar-circle-plus"></i>
-                    <p>Selecione uma data para visualizar os horários disponíveis</p>
+                    <p>Preencha todos os campos para ver os horários disponíveis</p>
                 </div>
             </div>
             <input type="hidden" id="horario" required>
