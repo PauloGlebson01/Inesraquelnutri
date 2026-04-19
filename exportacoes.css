@@ -91,7 +91,7 @@
     margin-bottom: 20px;
 }
 
-/* CAMPO DE DATA - CORRIGIDO SEM VAZAMENTO */
+/* CORREÇÃO: Campo de data sem vazamento - versão Desktop */
 .date-filter {
     display: flex;
     align-items: center;
@@ -104,16 +104,44 @@
 }
 
 .date-filter input {
-    flex: 1 1 auto;
+    flex: 1;
     background: rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 8px;
     padding: 10px 12px;
     color: #fff;
     font-size: 0.9rem;
-    min-width: 120px;
-    max-width: 100%;
+    min-width: 0;
+    width: auto;
     box-sizing: border-box;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+/* Estilização do calendário nativo para inputs date */
+.date-filter input[type="date"] {
+    appearance: none;
+    -webkit-appearance: none;
+    min-height: 42px;
+}
+
+.date-filter input[type="date"]::-webkit-calendar-picker-indicator {
+    background: transparent;
+    color: rgba(255, 255, 255, 0.6);
+    cursor: pointer;
+    padding: 4px;
+    margin-left: 4px;
+}
+
+.date-filter input[type="date"]::-webkit-datetime-edit-text,
+.date-filter input[type="date"]::-webkit-datetime-edit-month-field,
+.date-filter input[type="date"]::-webkit-datetime-edit-day-field,
+.date-filter input[type="date"]::-webkit-datetime-edit-year-field {
+    color: #fff;
+}
+
+.date-filter input[type="date"]:invalid::-webkit-datetime-edit {
+    color: rgba(255, 255, 255, 0.5);
 }
 
 .date-filter input:focus {
@@ -278,10 +306,28 @@
 }
 
 /* ============================= */
-/* RESPONSIVIDADE - CORRIGIDA */
+/* RESPONSIVIDADE - CORRIGIDA SEM VAZAMENTO */
 /* ============================= */
 
-/* Tablet */
+/* Tablet (768px - 1024px) */
+@media (max-width: 1024px) and (min-width: 769px) {
+    .export-cards {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+    
+    .date-filter {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    
+    .date-filter input {
+        flex: 1 1 120px;
+        min-width: 120px;
+    }
+}
+
+/* Tablet pequeno / Mobile grande (600px - 768px) */
 @media (max-width: 768px) {
     .export-cards {
         grid-template-columns: 1fr;
@@ -321,10 +367,11 @@
         margin-bottom: 15px;
     }
     
-    /* CORREÇÃO: campos de data sem vazamento no tablet */
+    /* CORREÇÃO: campos de data no tablet */
     .date-filter {
         flex-wrap: wrap;
         gap: 8px;
+        padding: 10px;
     }
     
     .date-filter input {
@@ -333,6 +380,7 @@
         padding: 8px 10px;
         font-size: 0.85rem;
         width: auto;
+        min-height: 40px;
     }
     
     .date-filter span {
@@ -365,7 +413,7 @@
     }
 }
 
-/* Mobile (até 600px) */
+/* Mobile (até 600px) - CORREÇÃO PRINCIPAL */
 @media (max-width: 600px) {
     .export-card {
         padding: 14px;
@@ -385,12 +433,12 @@
         font-size: 0.8rem;
     }
     
-    /* CORREÇÃO: campos de data sem vazamento no mobile */
+    /* CORREÇÃO: campos de data no mobile - empilhados e sem vazamento */
     .date-filter {
         flex-direction: column;
         align-items: stretch;
         gap: 8px;
-        padding: 10px;
+        padding: 12px;
     }
     
     .date-filter span {
@@ -400,13 +448,23 @@
     .date-filter input {
         width: 100%;
         min-width: 100%;
-        padding: 8px 10px;
-        font-size: 0.8rem;
+        padding: 10px 12px;
+        font-size: 0.85rem;
         box-sizing: border-box;
+        min-height: 44px;
+    }
+    
+    /* Ajuste para o calendário nativo no mobile */
+    .date-filter input[type="date"] {
+        font-size: 0.85rem;
+    }
+    
+    .date-filter input[type="date"]::-webkit-calendar-picker-indicator {
+        padding: 6px;
     }
     
     .btn-excel, .btn-pdf {
-        padding: 8px 12px;
+        padding: 10px 12px;
         font-size: 0.8rem;
     }
     
@@ -425,16 +483,50 @@
     
     .date-filter {
         gap: 6px;
-        padding: 8px;
+        padding: 10px;
     }
     
     .date-filter input {
-        padding: 6px 8px;
-        font-size: 0.7rem;
+        padding: 8px 10px;
+        font-size: 0.75rem;
+        min-height: 40px;
     }
     
     .btn-excel, .btn-pdf {
-        padding: 6px 10px;
+        padding: 8px 10px;
         font-size: 0.7rem;
+    }
+    
+    .history-table th,
+    .history-table td {
+        padding: 4px;
+        font-size: 0.65rem;
+    }
+    
+    .status-badge {
+        padding: 2px 8px;
+        font-size: 0.65rem;
+    }
+}
+
+/* Landscape mobile (modo paisagem) */
+@media (max-width: 900px) and (orientation: landscape) {
+    .export-cards {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+    }
+    
+    .date-filter {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+    
+    .date-filter input {
+        flex: 1;
+        min-width: 120px;
+    }
+    
+    .date-filter span {
+        display: inline-block;
     }
 }
