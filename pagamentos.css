@@ -813,6 +813,6 @@
 /* Ajuste para mobile */
 @media (max-width: 768px) {
     .container-fluid {
-        padding-top: 58px;
+        padding-top: 60px;
     }
 }
