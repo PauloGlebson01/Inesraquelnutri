@@ -166,6 +166,7 @@
     color: var(--text-muted);
     font-size: 0.9rem;
     transition: color 0.3s ease;
+    pointer-events: none;
 }
 
 .search-input {
@@ -177,6 +178,7 @@
     color: var(--text-main);
     font-size: 0.9rem;
     transition: all 0.2s;
+    box-sizing: border-box;
 }
 
 .search-input:focus {
@@ -549,6 +551,41 @@
     color: var(--text-main);
     font-size: 0.9rem;
     transition: all 0.2s;
+    box-sizing: border-box;
+}
+
+/* CORREÇÃO: Estilo específico para input type date */
+.form-group input[type="date"] {
+    min-height: 48px;
+    appearance: none;
+    -webkit-appearance: none;
+    display: block;
+    position: relative;
+}
+
+/* Ajuste do placeholder/texto para input date */
+.form-group input[type="date"]::-webkit-datetime-edit-text,
+.form-group input[type="date"]::-webkit-datetime-edit-month-field,
+.form-group input[type="date"]::-webkit-datetime-edit-day-field,
+.form-group input[type="date"]::-webkit-datetime-edit-year-field {
+    color: var(--text-main);
+}
+
+.form-group input[type="date"]::-webkit-calendar-picker-indicator {
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 8px;
+    position: relative;
+    right: 0;
+}
+
+.form-group input[type="date"]::-webkit-datetime-edit {
+    padding: 0;
+}
+
+.form-group input[type="date"]:invalid::-webkit-datetime-edit {
+    color: var(--text-muted);
 }
 
 .form-group input:focus,
@@ -691,7 +728,7 @@
     border-radius: 3px;
 }
 
-/* Responsividade */
+/* Responsividade - CORRIGIDA para mobile */
 @media (max-width: 1024px) {
     .stats-clientes {
         grid-template-columns: repeat(2, 1fr);
@@ -722,6 +759,16 @@
     .form-row {
         grid-template-columns: 1fr;
         gap: 0;
+    }
+    
+    /* Garantir que input de data tenha o mesmo tamanho no mobile */
+    .form-group input,
+    .form-group select,
+    .form-group textarea,
+    .form-group input[type="date"] {
+        width: 100%;
+        min-height: 48px;
+        font-size: 16px; /* Evita zoom automático no iOS */
     }
     
     .clientes-grid {
