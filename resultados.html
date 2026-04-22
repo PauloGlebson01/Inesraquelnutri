@@ -126,18 +126,24 @@
                     <label><i class="fa-solid fa-tag"></i> Título *</label>
                     <input type="text" id="resultadoTitulo" required placeholder="Ex: Emagrecimento - 3 meses">
                 </div>
+                
+                <!-- NOVO: Galeria de Imagens com Múltiplos Uploads -->
                 <div class="form-group">
-                    <label><i class="fa-solid fa-image"></i> Imagem (Antes/Depois) *</label>
-                    <div class="image-upload-container">
-                        <div class="image-preview" id="imagePreview">
-                            <i class="fa-solid fa-cloud-upload-alt"></i>
-                            <span>Clique para selecionar uma imagem</span>
+                    <label><i class="fa-solid fa-images"></i> Galeria de Imagens (Até 10 imagens)</label>
+                    <div class="galeria-upload-container">
+                        <div class="galeria-imagens" id="galeriaImagens">
+                            <!-- Imagens serão inseridas aqui dinamicamente -->
                         </div>
-                        <input type="file" id="resultadoImagem" accept="image/*" style="display: none;">
-                        <input type="hidden" id="resultadoImagemUrl">
+                        <div class="upload-area">
+                            <button type="button" id="btnAdicionarImagem" class="btn-add-image">
+                                <i class="fa-solid fa-plus"></i> Adicionar Imagem
+                            </button>
+                            <input type="file" id="resultadoImagemInput" accept="image/*" multiple style="display: none;">
+                            <small class="form-text">Formatos: JPG, PNG, GIF. Máximo 2MB por imagem. Até 10 imagens.</small>
+                        </div>
                     </div>
-                    <small class="form-text">Formatos: JPG, PNG, GIF. Tamanho máximo: 2MB</small>
                 </div>
+                
                 <div class="form-group">
                     <label><i class="fa-solid fa-align-left"></i> Descrição</label>
                     <textarea id="resultadoDescricao" rows="3" placeholder="Descreva a evolução do paciente..."></textarea>
@@ -183,6 +189,21 @@
             <div class="form-actions">
                 <button class="btn-cancel-excluir">Cancelar</button>
                 <button id="confirmarExcluir" class="btn-danger">Excluir</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Visualização da Galeria -->
+    <div id="modalGaleriaView" class="modal">
+        <div class="modal-content galeria-view-content">
+            <div class="modal-header">
+                <h2 id="galeriaViewTitulo"><i class="fa-solid fa-images"></i> Galeria de Resultados</h2>
+                <button class="modal-close-galeria">&times;</button>
+            </div>
+            <div class="modal-body galeria-view-body">
+                <div class="galeria-view-container" id="galeriaViewContainer">
+                    <!-- Imagens serão exibidas aqui -->
+                </div>
             </div>
         </div>
     </div>
