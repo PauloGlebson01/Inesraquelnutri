@@ -250,6 +250,70 @@
             <span>Resultado: <strong id="detalheResultadoMeta"></strong></span>
           </div>
         </div>
+        <div class="resultado-detalhe-actions" style="display: flex; gap: 12px; margin-top: 20px;">
+          <a href="agendamento.html" class="btn-agendar-detalhe" style="flex: 1;">
+            <i class="fa-solid fa-calendar-check"></i> Agendar Consulta
+          </a>
+          <button id="btnVerTodasImagens" class="btn-agendar-detalhe" style="flex: 1; background: linear-gradient(135deg, #6366f1, #4f46e5); display: none;">
+            <i class="fa-solid fa-images"></i> Ver Todas as Imagens
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Carrossel de Imagens do Resultado -->
+  <div id="modalCarrosselImagens" class="servicos-modal">
+    <div class="servicos-modal-content carrossel-content">
+      <div class="servicos-modal-header">
+        <h2 id="carrosselTitulo"><i class="fa-solid fa-images"></i> Galeria de Imagens</h2>
+        <button class="modal-carrossel-close">&times;</button>
+      </div>
+      <div class="servicos-modal-body carrossel-body">
+        <div class="carrossel-container">
+          <button class="carrossel-nav carrossel-prev" id="carrosselPrev">
+            <i class="fa-solid fa-chevron-left"></i>
+          </button>
+          
+          <div class="carrossel-slides-container">
+            <div class="carrossel-slides" id="carrosselSlides">
+              <!-- Imagens serão inseridas dinamicamente -->
+            </div>
+          </div>
+          
+          <button class="carrossel-nav carrossel-next" id="carrosselNext">
+            <i class="fa-solid fa-chevron-right"></i>
+          </button>
+        </div>
+        
+        <div class="carrossel-indicators" id="carrosselIndicators">
+          <!-- Indicadores serão inseridos dinamicamente -->
+        </div>
+        
+        <div class="carrossel-counter" id="carrosselCounter">
+          Imagem 1 de 1
+        </div>
+        
+        <div class="form-actions" style="margin-top: 20px; justify-content: center;">
+          <button id="fecharCarrossel" class="btn-cancel" style="padding: 10px 30px;">Fechar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Visualização em Tela Cheia -->
+  <div id="modalFullscreen" class="fullscreen-modal">
+    <div class="fullscreen-content">
+      <button class="fullscreen-close" id="fullscreenClose">&times;</button>
+      <button class="fullscreen-nav fullscreen-prev" id="fullscreenPrev">
+        <i class="fa-solid fa-chevron-left"></i>
+      </button>
+      <img id="fullscreenImage" src="" alt="Imagem em tela cheia">
+      <button class="fullscreen-nav fullscreen-next" id="fullscreenNext">
+        <i class="fa-solid fa-chevron-right"></i>
+      </button>
+      <div class="fullscreen-counter" id="fullscreenCounter">
+        Imagem 1 de 1
       </div>
     </div>
   </div>

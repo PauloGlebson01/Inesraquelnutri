@@ -21,6 +21,10 @@ let produtosCache = [];
 let resultadosCache = [];
 let autenticado = false;
 
+// Variáveis do carrossel
+let imagensAtuais = [];
+let indiceAtual = 0;
+
 // Funções auxiliares
 function formatarMoeda(valor) {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor);
@@ -62,6 +66,184 @@ function getCategoriaIcon(categoria) {
     };
     return icons[categoria] || '🥗';
 }
+
+// ==================== FUNÇÕES DO CARROSSEL ====================
+function abrirCarrossel(imagens, titulo) {
+    if (!imagens || imagens.length === 0) return;
+    
+    imagensAtuais = imagens;
+    indiceAtual = 0;
+    
+    const modal = document.getElementById('modalCarrosselImagens');
+    const tituloElement = document.getElementById('carrosselTitulo');
+    const slidesContainer = document.getElementById('carrosselSlides');
+    const indicatorsContainer = document.getElementById('carrosselIndicators');
+    const counterElement = document.getElementById('carrosselCounter');
+    
+    if (tituloElement) {
+        tituloElement.innerHTML = `<i class="fa-solid fa-images"></i> ${escapeHtml(titulo)}`;
+    }
+    
+    if (slidesContainer) {
+        slidesContainer.innerHTML = imagens.map((img, index) => `
+            <div class="carrossel-slide" data-index="${index}">
+                <img src="${img}" alt="Imagem ${index + 1}" onclick="abrirFullscreen(${index})">
+            </div>
+        `).join('');
+    }
+    
+    if (indicatorsContainer) {
+        indicatorsContainer.innerHTML = imagens.map((_, index) => `
+            <div class="carrossel-indicator ${index === 0 ? 'active' : ''}" data-index="${index}"></div>
+        `).join('');
+        
+        document.querySelectorAll('.carrossel-indicator').forEach(ind => {
+            ind.addEventListener('click', () => {
+                const index = parseInt(ind.getAttribute('data-index'));
+                irParaSlide(index);
+            });
+        });
+    }
+    
+    if (counterElement) {
+        counterElement.textContent = `Imagem 1 de ${imagens.length}`;
+    }
+    
+    atualizarCarrossel();
+    
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function atualizarCarrossel() {
+    const slidesContainer = document.getElementById('carrosselSlides');
+    const indicators = document.querySelectorAll('.carrossel-indicator');
+    const counterElement = document.getElementById('carrosselCounter');
+    const total = imagensAtuais.length;
+    
+    if (slidesContainer) {
+        const deslocamento = -(indiceAtual * 100);
+        slidesContainer.style.transform = `translateX(${deslocamento}%)`;
+    }
+    
+    indicators.forEach((ind, i) => {
+        if (i === indiceAtual) {
+            ind.classList.add('active');
+        } else {
+            ind.classList.remove('active');
+        }
+    });
+    
+    if (counterElement) {
+        counterElement.textContent = `Imagem ${indiceAtual + 1} de ${total}`;
+    }
+}
+
+function irParaSlide(index) {
+    if (index >= 0 && index < imagensAtuais.length) {
+        indiceAtual = index;
+        atualizarCarrossel();
+    }
+}
+
+function proximoSlide() {
+    if (indiceAtual < imagensAtuais.length - 1) {
+        indiceAtual++;
+        atualizarCarrossel();
+    } else {
+        indiceAtual = 0;
+        atualizarCarrossel();
+    }
+}
+
+function slideAnterior() {
+    if (indiceAtual > 0) {
+        indiceAtual--;
+        atualizarCarrossel();
+    } else {
+        indiceAtual = imagensAtuais.length - 1;
+        atualizarCarrossel();
+    }
+}
+
+function fecharCarrossel() {
+    const modal = document.getElementById('modalCarrosselImagens');
+    if (modal) {
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+}
+
+// ==================== FUNÇÕES DE TELA CHEIA ====================
+function abrirFullscreen(index) {
+    if (!imagensAtuais || imagensAtuais.length === 0) return;
+    
+    indiceAtual = index;
+    const modal = document.getElementById('modalFullscreen');
+    const fullscreenImage = document.getElementById('fullscreenImage');
+    const counterElement = document.getElementById('fullscreenCounter');
+    
+    if (fullscreenImage) {
+        fullscreenImage.src = imagensAtuais[indiceAtual];
+    }
+    
+    if (counterElement) {
+        counterElement.textContent = `Imagem ${indiceAtual + 1} de ${imagensAtuais.length}`;
+    }
+    
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function fecharFullscreen() {
+    const modal = document.getElementById('modalFullscreen');
+    if (modal) {
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+}
+
+function proximoFullscreen() {
+    if (indiceAtual < imagensAtuais.length - 1) {
+        indiceAtual++;
+        const fullscreenImage = document.getElementById('fullscreenImage');
+        const counterElement = document.getElementById('fullscreenCounter');
+        
+        if (fullscreenImage) {
+            fullscreenImage.src = imagensAtuais[indiceAtual];
+        }
+        
+        if (counterElement) {
+            counterElement.textContent = `Imagem ${indiceAtual + 1} de ${imagensAtuais.length}`;
+        }
+    }
+}
+
+function anteriorFullscreen() {
+    if (indiceAtual > 0) {
+        indiceAtual--;
+        const fullscreenImage = document.getElementById('fullscreenImage');
+        const counterElement = document.getElementById('fullscreenCounter');
+        
+        if (fullscreenImage) {
+            fullscreenImage.src = imagensAtuais[indiceAtual];
+        }
+        
+        if (counterElement) {
+            counterElement.textContent = `Imagem ${indiceAtual + 1} de ${imagensAtuais.length}`;
+        }
+    }
+}
+
+// Expor funções globalmente
+window.abrirCarrossel = abrirCarrossel;
+window.fecharCarrossel = fecharCarrossel;
+window.proximoSlide = proximoSlide;
+window.slideAnterior = slideAnterior;
+window.abrirFullscreen = abrirFullscreen;
+window.fecharFullscreen = fecharFullscreen;
+window.proximoFullscreen = proximoFullscreen;
+window.anteriorFullscreen = anteriorFullscreen;
 
 // ==================== PLANOS ====================
 function abrirModalPlanos() {
@@ -355,9 +537,36 @@ function abrirModalDetalheResultado(resultado) {
     document.getElementById('detalheResultadoMeta').textContent = resultado.meta || 'Não informado';
     
     const imagem = document.getElementById('detalheResultadoImagem');
-    if (imagem && resultado.imagemUrl) {
-        imagem.src = resultado.imagemUrl;
-        imagem.alt = resultado.titulo || 'Resultado';
+    if (imagem) {
+        if (resultado.imagens && resultado.imagens.length > 0) {
+            imagem.src = resultado.imagens[0];
+            imagem.alt = resultado.titulo || 'Resultado';
+            imagem.onclick = () => {
+                abrirCarrossel(resultado.imagens, resultado.titulo);
+            };
+            imagem.style.cursor = 'pointer';
+        } else {
+            imagem.src = './assets/placeholder.jpg';
+            imagem.alt = 'Sem imagem';
+            imagem.onclick = null;
+            imagem.style.cursor = 'default';
+        }
+    }
+    
+    const btnVerTodas = document.getElementById('btnVerTodasImagens');
+    if (btnVerTodas) {
+        if (resultado.imagens && resultado.imagens.length > 0) {
+            btnVerTodas.style.display = 'flex';
+            btnVerTodas.innerHTML = resultado.imagens.length === 1 
+                ? '<i class="fa-solid fa-image"></i> Ver Imagem' 
+                : `<i class="fa-solid fa-images"></i> Ver Todas (${resultado.imagens.length})`;
+            btnVerTodas.onclick = () => {
+                fecharModalDetalheResultado();
+                abrirCarrossel(resultado.imagens, resultado.titulo);
+            };
+        } else {
+            btnVerTodas.style.display = 'none';
+        }
     }
     
     modal.classList.add('active');
@@ -401,10 +610,16 @@ async function carregarResultados() {
             resultado.id = doc.id;
             resultadosCache.push(resultado);
             
+            const imagemUrl = (resultado.imagens && resultado.imagens.length > 0) 
+                ? resultado.imagens[0] 
+                : './assets/placeholder.jpg';
+            const totalImagens = resultado.imagens ? resultado.imagens.length : 0;
+            
             galeriaHTML += `
                 <div class="resultado-card" data-index="${resultadosCache.length - 1}" data-tipo="resultado">
                     <div class="resultado-imagem">
-                        <img src="${escapeHtml(resultado.imagemUrl || './assets/placeholder.jpg')}" alt="${escapeHtml(resultado.titulo || 'Resultado')}">
+                        <img src="${escapeHtml(imagemUrl)}" alt="${escapeHtml(resultado.titulo || 'Resultado')}" style="cursor: pointer;">
+                        ${totalImagens > 1 ? `<div class="badge-multiplas">+${totalImagens - 1}</div>` : ''}
                     </div>
                     <div class="resultado-info">
                         <h3>${escapeHtml(resultado.titulo || 'Resultado')}</h3>
@@ -417,6 +632,9 @@ async function carregarResultados() {
                                 <i class="fa-solid fa-chart-line"></i> ${escapeHtml(resultado.meta || '-')}
                             </span>
                         </div>
+                        <button class="btn-ver-todas-imagens" data-index="${resultadosCache.length - 1}">
+                            <i class="fa-solid fa-images"></i> ${totalImagens === 1 ? 'Ver imagem' : `Ver todas (${totalImagens})`}
+                        </button>
                     </div>
                 </div>
             `;
@@ -426,9 +644,38 @@ async function carregarResultados() {
         
         document.querySelectorAll('.resultado-card[data-tipo="resultado"]').forEach(card => {
             card.addEventListener('click', (e) => {
+                if (e.target.closest('.btn-ver-todas-imagens')) return;
+                
                 const index = card.getAttribute('data-index');
                 if (index !== null && resultadosCache[index]) {
                     abrirModalDetalheResultado(resultadosCache[index]);
+                }
+            });
+        });
+        
+        document.querySelectorAll('.btn-ver-todas-imagens').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const index = btn.getAttribute('data-index');
+                if (index !== null && resultadosCache[index]) {
+                    const resultado = resultadosCache[index];
+                    if (resultado.imagens && resultado.imagens.length > 0) {
+                        abrirCarrossel(resultado.imagens, resultado.titulo);
+                    }
+                }
+            });
+        });
+        
+        document.querySelectorAll('.resultado-card .resultado-imagem img').forEach(img => {
+            img.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const card = img.closest('.resultado-card');
+                const index = card.getAttribute('data-index');
+                if (index !== null && resultadosCache[index]) {
+                    const resultado = resultadosCache[index];
+                    if (resultado.imagens && resultado.imagens.length > 0) {
+                        abrirCarrossel(resultado.imagens, resultado.titulo);
+                    }
                 }
             });
         });
@@ -449,7 +696,6 @@ async function carregarResultados() {
 
 // ==================== INICIALIZAÇÃO ====================
 document.addEventListener("DOMContentLoaded", function () {
-    // Elementos
     const themeToggle = document.getElementById("themeToggle");
     const shareBtn = document.getElementById("shareBtn");
     const shareModal = document.getElementById("shareModal");
@@ -460,7 +706,15 @@ document.addEventListener("DOMContentLoaded", function () {
     const produtosBtn = document.getElementById("produtosBtn");
     const galeriaBtn = document.getElementById("galeriaBtn");
     
-    // Fechar botões dos modais
+    const carrosselPrev = document.getElementById('carrosselPrev');
+    const carrosselNext = document.getElementById('carrosselNext');
+    const fecharCarrosselBtn = document.getElementById('fecharCarrossel');
+    const modalCarrosselClose = document.querySelector('.modal-carrossel-close');
+    
+    const fullscreenPrev = document.getElementById('fullscreenPrev');
+    const fullscreenNext = document.getElementById('fullscreenNext');
+    const fullscreenClose = document.getElementById('fullscreenClose');
+    
     const modalClosePlanos = document.querySelector(".servicos-modal-close");
     const detalheClosePlanos = document.querySelector(".servico-detalhe-close");
     const modalCloseProdutos = document.querySelector(".produtos-modal-close");
@@ -470,7 +724,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const currentUrl = window.location.href;
 
-    // Autenticação Firebase
     signInAnonymously(auth).then(() => {
         console.log("Autenticado anonimamente com sucesso!");
         autenticado = true;
@@ -489,7 +742,40 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // Botão Planos
+    if (carrosselPrev) carrosselPrev.addEventListener('click', slideAnterior);
+    if (carrosselNext) carrosselNext.addEventListener('click', proximoSlide);
+    if (fecharCarrosselBtn) fecharCarrosselBtn.addEventListener('click', fecharCarrossel);
+    if (modalCarrosselClose) modalCarrosselClose.addEventListener('click', fecharCarrossel);
+    
+    if (fullscreenPrev) fullscreenPrev.addEventListener('click', anteriorFullscreen);
+    if (fullscreenNext) fullscreenNext.addEventListener('click', proximoFullscreen);
+    if (fullscreenClose) fullscreenClose.addEventListener('click', fecharFullscreen);
+    
+    document.addEventListener('keydown', (e) => {
+        const carrosselActive = document.getElementById('modalCarrosselImagens')?.classList.contains('active');
+        const fullscreenActive = document.getElementById('modalFullscreen')?.classList.contains('active');
+        
+        if (carrosselActive) {
+            if (e.key === 'ArrowLeft') {
+                slideAnterior();
+            } else if (e.key === 'ArrowRight') {
+                proximoSlide();
+            } else if (e.key === 'Escape') {
+                fecharCarrossel();
+            }
+        }
+        
+        if (fullscreenActive) {
+            if (e.key === 'ArrowLeft') {
+                anteriorFullscreen();
+            } else if (e.key === 'ArrowRight') {
+                proximoFullscreen();
+            } else if (e.key === 'Escape') {
+                fecharFullscreen();
+            }
+        }
+    });
+
     if (planosBtn) {
         planosBtn.addEventListener("click", (e) => {
             e.preventDefault();
@@ -497,7 +783,6 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // Botão Produtos
     if (produtosBtn) {
         produtosBtn.addEventListener("click", (e) => {
             e.preventDefault();
@@ -505,7 +790,6 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // Botão Galeria
     if (galeriaBtn) {
         galeriaBtn.addEventListener("click", (e) => {
             e.preventDefault();
@@ -513,19 +797,13 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // Fechar modais de Planos
     if (modalClosePlanos) modalClosePlanos.addEventListener("click", fecharModalPlanos);
     if (detalheClosePlanos) detalheClosePlanos.addEventListener("click", fecharModalDetalhePlano);
-
-    // Fechar modais de Produtos
     if (modalCloseProdutos) modalCloseProdutos.addEventListener("click", fecharModalProdutos);
     if (detalheCloseProdutos) detalheCloseProdutos.addEventListener("click", fecharModalDetalheProduto);
-
-    // Fechar modais de Galeria
     if (modalCloseGaleria) modalCloseGaleria.addEventListener("click", fecharModalGaleria);
     if (detalheCloseResultado) detalheCloseResultado.addEventListener("click", fecharModalDetalheResultado);
 
-    // Fechar modais ao clicar fora
     window.addEventListener("click", (e) => {
         const planosModal = document.getElementById("servicosModal");
         const planoDetalheModal = document.getElementById("servicoDetalheModal");
@@ -533,6 +811,8 @@ document.addEventListener("DOMContentLoaded", function () {
         const produtoDetalheModal = document.getElementById("produtoDetalheModal");
         const galeriaModal = document.getElementById("galeriaModal");
         const resultadoDetalheModal = document.getElementById("resultadoDetalheModal");
+        const modalCarrossel = document.getElementById("modalCarrosselImagens");
+        const modalFullscreen = document.getElementById("modalFullscreen");
         
         if (e.target === planosModal) fecharModalPlanos();
         if (e.target === planoDetalheModal) fecharModalDetalhePlano();
@@ -540,9 +820,10 @@ document.addEventListener("DOMContentLoaded", function () {
         if (e.target === produtoDetalheModal) fecharModalDetalheProduto();
         if (e.target === galeriaModal) fecharModalGaleria();
         if (e.target === resultadoDetalheModal) fecharModalDetalheResultado();
+        if (e.target === modalCarrossel) fecharCarrossel();
+        if (e.target === modalFullscreen) fecharFullscreen();
     });
 
-    // Tema
     let savedTheme = localStorage.getItem("theme") || "dark";
     document.body.classList.add(savedTheme);
     updateThemeIcon();
@@ -566,7 +847,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    // Modal de Compartilhamento
     if (shareBtn && shareModal && closeShare) {
         shareBtn.addEventListener("click", () => {
             shareModal.style.display = "flex";
@@ -602,7 +882,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    // Ações de Compartilhamento
     if (copyLinkBtn) {
         copyLinkBtn.addEventListener("click", async () => {
             try {
