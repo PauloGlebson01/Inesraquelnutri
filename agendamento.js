@@ -9,7 +9,9 @@ import {
     query, 
     where, 
     getDocs,
-    Timestamp
+    Timestamp,
+    updateDoc,
+    doc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { 
     getAuth, 
@@ -172,6 +174,57 @@ function formatarMoeda(valor) {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor);
 }
 
+// Função para verificar se o plano selecionado é gratuito (Retorno)
+function isPlanoGratuito() {
+    const selectedOption = servicoSelect.options[servicoSelect.selectedIndex];
+    return selectedOption && selectedOption.getAttribute('data-gratuito') === 'true';
+}
+
+// Função para formatar data em mensagem WhatsApp
+function formatarDataParaMensagem(dataStr) {
+    if (!dataStr) return 'Data não informada';
+    const [ano, mes, dia] = dataStr.split('-');
+    return `${dia}/${mes}/${ano}`;
+}
+
+// Função para enviar WhatsApp para planos gratuitos (Retorno)
+function enviarMensagemConfirmacaoGratuita(agendamento) {
+    const telefone = agendamento.telefone || agendamento.whatsapp;
+    if (!telefone) return false;
+
+    const cliente = agendamento.cliente || agendamento.nome || 'cliente';
+    const servico = agendamento.servicoNome || agendamento.servico || 'Retorno';
+    const profissional = agendamento.profissional || 'nutricionista';
+    const dataFormatada = formatarDataParaMensagem(agendamento.data);
+    const horario = agendamento.horario || '--:--';
+
+    const mensagem = `Olá ${cliente}! 🥗✨\n\n` +
+        `Sua consulta de *${servico}* foi *CONFIRMADA* com sucesso!\n\n` +
+        `📝 *Detalhes:*\n` +
+        `• Plano: ${servico}\n` +
+        `• Nutricionista: ${profissional}\n` +
+        `• Data: ${dataFormatada}\n` +
+        `• Horário: ${horario}\n` +
+        `• Valor: *GRATUITO* 🎉\n\n` +
+        `📍 *Local:* Inês Raquel - Consultório\n\n` +
+        `⚠️ *Importante:*\n` +
+        `⏰ Chegue com 10 minutos de antecedência.\n\n` +
+        `✨ *InêsRaquel* ✨\n` +
+        `Cuidando da sua saúde com carinho e dedicação 💚`;
+
+    const numeroLimpo = telefone.replace(/\D/g, "");
+    if (numeroLimpo.length < 10) return false;
+    
+    let numeroFormatado = numeroLimpo;
+    if (numeroFormatado.length === 10) {
+        numeroFormatado = numeroFormatado.substring(0, 2) + '9' + numeroFormatado.substring(2);
+    }
+    
+    const url = `https://wa.me/55${numeroFormatado}?text=${encodeURIComponent(mensagem)}`;
+    window.open(url, '_blank');
+    return true;
+}
+
 /* ===========================
    LOGICA DE HORÁRIOS
 =========================== */
@@ -301,6 +354,7 @@ if (form) {
         const opcaoSelecionada = servicoSelect.options[servicoSelect.selectedIndex];
         const servicoTexto = opcaoSelecionada?.text || servico;
         const valor = Number(opcaoSelecionada?.dataset?.preco || 0);
+        const ehGratuito = opcaoSelecionada?.getAttribute('data-gratuito') === 'true';
 
         // Dados do agendamento com profissional
         const dadosAgendamento = {
@@ -314,8 +368,9 @@ if (form) {
             valor: valor,
             data: data,
             horario: horario,
-            status: "aguardando_pagamento",
-            pagamentoStatus: "pendente",
+            status: ehGratuito ? "confirmado" : "aguardando_pagamento",
+            pagamentoStatus: ehGratuito ? "gratuito" : "pendente",
+            ehGratuito: ehGratuito,
             createdAt: Timestamp.now(),
             atualizadoEm: Timestamp.now()
         };
@@ -325,11 +380,24 @@ if (form) {
             const agendamentoId = docRef.id;
             console.log("Agendamento salvo com sucesso! ID:", agendamentoId);
             
-            mostrarMensagem("✅ Agendamento pré-reservado! Redirecionando para pagamento...", "sucesso");
-            
-            setTimeout(() => {
-                window.location.href = `pagamento-cliente.html?agendamento=${agendamentoId}`;
-            }, 1500);
+            if (ehGratuito) {
+                // PLANO GRATUITO (RETORNO) - Confirma direto sem pagamento
+                mostrarMensagem("✅ Agendamento confirmado! Redirecionando...", "sucesso");
+                
+                // Enviar WhatsApp de confirmação para plano gratuito
+                enviarMensagemConfirmacaoGratuita(dadosAgendamento);
+                
+                setTimeout(() => {
+                    window.location.href = `agendamento-confirmado.html`;
+                }, 1500);
+            } else {
+                // PLANO PAGO - Redireciona para pagamento
+                mostrarMensagem("✅ Agendamento pré-reservado! Redirecionando para pagamento...", "sucesso");
+                
+                setTimeout(() => {
+                    window.location.href = `pagamento-cliente.html?agendamento=${agendamentoId}`;
+                }, 1500);
+            }
             
         } catch (error) {
             console.error("Erro ao processar:", error);
