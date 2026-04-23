@@ -113,6 +113,7 @@ function abrirCarrossel(imagens, titulo) {
     
     modal.classList.add('active');
     document.body.style.overflow = 'hidden';
+    document.body.classList.add('modal-open');
 }
 
 function atualizarCarrossel() {
@@ -171,6 +172,7 @@ function fecharCarrossel() {
     if (modal) {
         modal.classList.remove('active');
         document.body.style.overflow = '';
+        document.body.classList.remove('modal-open');
     }
 }
 
