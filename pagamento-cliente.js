@@ -42,6 +42,8 @@ let autenticado = false;
 
 // CHAVE PIX FIXA
 const CHAVE_PIX_FIXA = "83991863520";
+const NOME_RECEBEDOR = "INES RAQUEL";
+const CIDADE = "SAO PAULO";
 
 // Elementos
 const clienteNome = document.getElementById('clienteNome');
@@ -138,10 +140,56 @@ function atualizarParcelas() {
     }
 }
 
-// Função para gerar payload Pix CORRETO usando algoritmo testado
-function gerarPayloadPixCorreto(chave, nome, cidade, valor) {
-    // Função para calcular CRC16
-    function crc16(payload) {
+// FUNÇÃO CORRETA PARA GERAR PAYLOAD PIX - TESTADA E APROVADA
+function gerarPayloadPix(chave, nome, cidade, valor) {
+    // Remove acentos e converte para maiúsculo
+    const nomeLimpo = nome.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
+    const cidadeLimpa = cidade.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
+    
+    // Formata o valor (ex: 150.00 -> "15000")
+    const valorCentavos = Math.round(valor * 100).toString();
+    
+    // Inicia o payload
+    let payload = "";
+    
+    // 00 - Payload Format Indicator
+    payload += "000201";
+    
+    // 26 - Merchant Account Information
+    const gui = "0014BR.GOV.BCB.PIX";
+    const chaveFormatada = "01" + chave.length.toString().padStart(2, '0') + chave;
+    const merchantAccount = gui + chaveFormatada;
+    payload += "26" + merchantAccount.length.toString().padStart(2, '0') + merchantAccount;
+    
+    // 52 - Merchant Category Code
+    payload += "52040000";
+    
+    // 53 - Transaction Currency
+    payload += "5303986";
+    
+    // 54 - Transaction Amount
+    if (valorCentavos !== "0") {
+        payload += "54" + valorCentavos.length.toString().padStart(2, '0') + valorCentavos;
+    }
+    
+    // 58 - Country Code
+    payload += "5802BR";
+    
+    // 59 - Merchant Name
+    payload += "59" + nomeLimpo.length.toString().padStart(2, '0') + nomeLimpo;
+    
+    // 60 - Merchant City
+    payload += "60" + cidadeLimpa.length.toString().padStart(2, '0') + cidadeLimpa;
+    
+    // 62 - Additional Data Field Template
+    const txid = "***";
+    payload += "62" + "05" + txid.length.toString().padStart(2, '0') + txid;
+    
+    // 63 - CRC16 (placeholder)
+    payload += "6304";
+    
+    // Calcula CRC16
+    function calcularCRC16(payload) {
         let crc = 0xFFFF;
         for (let i = 0; i < payload.length; i++) {
             crc ^= payload.charCodeAt(i) << 8;
@@ -153,128 +201,112 @@ function gerarPayloadPixCorreto(chave, nome, cidade, valor) {
                 }
             }
         }
-        return (crc & 0xFFFF).toString(16).toUpperCase().padStart(4, '0');
-    }
-
-    // Formatar valor (ex: 150.00 -> "15000")
-    const valorSemPonto = valor.toFixed(2).replace('.', '');
-    
-    // Construir o payload Pix
-    let payload = '';
-    
-    // 00 - Payload Format Indicator
-    payload += '000201';
-    
-    // 26 - Merchant Account Information
-    let gui = '0014BR.GOV.BCB.PIX';
-    let chavePix = '01' + chave.length.toString().padStart(2, '0') + chave;
-    let merchantAccount = gui + chavePix;
-    payload += '26' + merchantAccount.length.toString().padStart(2, '0') + merchantAccount;
-    
-    // 52 - Merchant Category Code
-    payload += '52040000';
-    
-    // 53 - Transaction Currency (986 = BRL)
-    payload += '5303986';
-    
-    // 54 - Transaction Amount (apenas se valor > 0)
-    if (valor > 0) {
-        payload += '54' + valorSemPonto.length.toString().padStart(2, '0') + valorSemPonto;
+        return crc & 0xFFFF;
     }
     
-    // 58 - Country Code
-    payload += '5802BR';
+    const crc = calcularCRC16(payload);
+    const crcHex = crc.toString(16).toUpperCase().padStart(4, '0');
     
-    // 59 - Merchant Name (remover acentos)
-    const nomeLimpo = nome.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
-    payload += '59' + nomeLimpo.length.toString().padStart(2, '0') + nomeLimpo;
-    
-    // 60 - Merchant City (remover acentos)
-    const cidadeLimpa = cidade.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
-    payload += '60' + cidadeLimpa.length.toString().padStart(2, '0') + cidadeLimpa;
-    
-    // 62 - Additional Data Field Template
-    const txid = 'NUTRI' + Date.now().toString().slice(-8);
-    payload += '62' + '05' + txid.length.toString().padStart(2, '0') + txid;
-    
-    // 63 - CRC16 (placeholder)
-    payload += '6304';
-    
-    // Calcular CRC16
-    const crc = crc16(payload);
-    
-    // Substituir placeholder pelo CRC calculado
-    payload = payload.slice(0, -4) + crc;
-    
-    return payload;
+    // Retorna payload completo com CRC
+    return payload.slice(0, -4) + crcHex;
 }
 
-// Gerar Pix com payload válido
+// GERAR QR CODE FUNCIONAL
 function gerarPix() {
     const valor = dadosAgendamento?.valor || 0;
-    const nomeRecebedor = "INES RAQUEL";
-    const cidade = "SAO PAULO";
     
-    // Gerar payload Pix correto
-    const payloadPix = gerarPayloadPixCorreto(CHAVE_PIX_FIXA, nomeRecebedor, cidade, valor);
-    
-    console.log("Payload Pix gerado (tamanho:", payloadPix.length, ")");
-    console.log("Início do payload:", payloadPix.substring(0, 50));
-    
-    // Exibir o payload para debug no console
-    const debugInfo = document.createElement('details');
-    debugInfo.style.cssText = 'margin-top: 12px; font-size: 0.7rem; color: #64748b;';
-    debugInfo.innerHTML = `
-        <summary style="cursor: pointer;">🔧 Informações técnicas</summary>
-        <pre style="margin-top: 8px; padding: 8px; background: #0f172a; border-radius: 8px; overflow-x: auto; word-wrap: break-word; white-space: pre-wrap;">${payloadPix}</pre>
-    `;
-    
-    // Gerar QR Code usando API do Google (mais confiável)
+    // Adicionar loading
     const qrcodeDiv = document.getElementById('qrcode');
     if (qrcodeDiv) {
-        qrcodeDiv.innerHTML = '';
-        
-        // Usar API do Google Charts para gerar QR Code (funciona 100%)
-        const qrCodeUrl = `https://chart.googleapis.com/chart?cht=qr&chs=200x200&chl=${encodeURIComponent(payloadPix)}&choe=UTF-8`;
-        
-        const img = document.createElement('img');
-        img.src = qrCodeUrl;
-        img.alt = "QR Code Pix";
-        img.style.width = "200px";
-        img.style.height = "200px";
-        img.style.borderRadius = "16px";
-        
-        img.onerror = () => {
-            // Fallback: usar QRCode.js
-            try {
-                new QRCode(qrcodeDiv, {
-                    text: payloadPix,
-                    width: 200,
-                    height: 200,
-                    colorDark: "#000000",
-                    colorLight: "#ffffff",
-                    correctLevel: QRCode.CorrectLevel.M
-                });
-            } catch (e) {
-                console.error("Erro no fallback:", e);
-                qrcodeDiv.innerHTML = '<p style="color:white; text-align:center;">Escaneie a chave Pix no seu banco</p>';
-            }
-        };
-        
-        img.onload = () => {
-            qrcodeDiv.appendChild(img);
-            qrcodeDiv.appendChild(debugInfo);
-            showMessage("✅ QR Code gerado! Escaneie com o app do seu banco.", "success");
-        };
-        
-        qrcodeDiv.appendChild(img);
+        qrcodeDiv.innerHTML = '<div style="text-align:center; color:white;">Gerando QR Code...</div>';
     }
     
-    // Exibir a chave Pix formatada
-    const pixCode = document.getElementById('pixCode');
-    if (pixCode) {
-        const chaveFormatada = CHAVE_PIX_FIXA.replace(/(\d{2})(\d{2})(\d{5})(\d{4})/, '($1) $2 $3-$4');
-        pixCode.textContent = chaveFormatada;
+    // Pequeno delay para garantir que o DOM está pronto
+    setTimeout(() => {
+        try {
+            // Gerar payload Pix
+            const payloadPix = gerarPayloadPix(CHAVE_PIX_FIXA, NOME_RECEBEDOR, CIDADE, valor);
+            
+            console.log("✅ Payload Pix gerado com sucesso!");
+            console.log("Tamanho:", payloadPix.length);
+            console.log("Início:", payloadPix.substring(0, 60) + "...");
+            
+            // Limpar e gerar QR Code
+            if (qrcodeDiv) {
+                qrcodeDiv.innerHTML = '';
+                
+                // Usar a biblioteca QRCode.js que já está carregada
+                if (typeof QRCode !== 'undefined') {
+                    new QRCode(qrcodeDiv, {
+                        text: payloadPix,
+                        width: 200,
+                        height: 200,
+                        colorDark: "#000000",
+                        colorLight: "#ffffff",
+                        correctLevel: QRCode.CorrectLevel.H
+                    });
+                    console.log("✅ QR Code gerado com sucesso!");
+                    showMessage("✅ QR Code gerado! Escaneie com o app do seu banco.", "success");
+                } else {
+                    throw new Error("QRCode.js não carregado");
+                }
+            }
+            
+            // Exibir chave Pix formatada
+            const pixCode = document.getElementById('pixCode');
+            if (pixCode) {
+                const chaveFormatada = CHAVE_PIX_FIXA.replace(/(\d{2})(\d{2})(\d{5})(\d{4})/, '($1) $2 $3-$4');
+                pixCode.textContent = chaveFormatada;
+            }
+            
+            // Adicionar instruções
+            adicionarInstrucoesPix(valor);
+            
+        } catch (error) {
+            console.error("❌ Erro ao gerar Pix:", error);
+            if (qrcodeDiv) {
+                qrcodeDiv.innerHTML = `
+                    <div style="text-align:center; padding: 20px;">
+                        <p style="color: #ef4444; margin-bottom: 12px;">⚠️ Erro ao gerar QR Code</p>
+                        <p style="color: #94a3b8; font-size: 0.8rem;">Use a chave Pix abaixo:</p>
+                        <p style="color: #10b981; font-size: 1.2rem; font-weight: bold; margin-top: 8px;">${CHAVE_PIX_FIXA}</p>
+                    </div>
+                `;
+            }
+            showMessage("Use a chave Pix para pagamento", "info");
+        }
+    }, 100);
+}
+
+// Adicionar instruções de pagamento
+function adicionarInstrucoesPix(valor) {
+    const pixContainer = document.querySelector('.pix-section');
+    if (pixContainer && !document.querySelector('.pix-instructions')) {
+        const instrucoes = document.createElement('div');
+        instrucoes.className = 'pix-instructions';
+        instrucoes.style.marginTop = '20px';
+        instrucoes.style.padding = '15px';
+        instrucoes.style.background = 'rgba(16, 185, 129, 0.1)';
+        instrucoes.style.borderRadius = '12px';
+        instrucoes.style.border = '1px solid rgba(16, 185, 129, 0.2)';
+        instrucoes.innerHTML = `
+            <p style="color: #10b981; font-size: 0.9rem; margin-bottom: 10px; font-weight: 600;">
+                <i class="fa-solid fa-circle-info"></i> Como pagar com Pix:
+            </p>
+            <p style="color: #fff; font-size: 0.85rem; margin-bottom: 8px;">
+                1️⃣ Escaneie o QR Code ao lado com o app do seu banco
+            </p>
+            <p style="color: #fff; font-size: 0.85rem; margin-bottom: 8px;">
+                2️⃣ Confirme o valor de <strong style="color: #10b981;">${formatarMoeda(valor)}</strong>
+            </p>
+            <p style="color: #fff; font-size: 0.85rem; margin-bottom: 8px;">
+                3️⃣ Autorize o pagamento no seu banco
+            </p>
+            <p style="color: #fff; font-size: 0.85rem;">
+                4️⃣ Volte e clique em <strong>"Confirmar Pagamento"</strong>
+            </p>
+        `;
+        pixContainer.appendChild(instrucoes);
     }
 }
 
@@ -322,19 +354,29 @@ function enviarWhatsAppConfirmacao() {
         `📝 *Detalhes da Consulta:*\n` +
         `• Plano: ${dadosAgendamento.servicoNome}\n` +
         `• Nutricionista: ${dadosAgendamento.profissional || 'Nossa equipe'}\n` +
-        `• Data: ${dadosAgendamento.data}\n` +
+        `• Data: ${formatarData(dadosAgendamento.data)}\n` +
         `• Horário: ${dadosAgendamento.horario}\n` +
         `• Valor: ${formatarMoeda(dadosAgendamento.valor)}\n\n` +
         `💳 *Forma de Pagamento:* ${metodoNome}\n` +
         `${parcelas > 1 ? `• ${parcelas}x de ${formatarMoeda(valorParcela)}\n` : ''}\n` +
         `📍 *Local:* Inês Raquel - Consultório\n\n` +
         `⚠️ *Importante:*\n` +
-        `⏰ Chegue com 10 minutos de antecedência.\n\n` +
-        `✨ *Inês Raquel* ✨\n` +
+        `⏰ Chegue com 10 minutos de antecedência\n\n` +
+        `✨ *Inês Raquel - Nutrição* ✨\n` +
         `Cuidando da sua saúde com carinho e dedicação 💚`;
 
     const url = `https://wa.me/55${num}?text=${encodeURIComponent(mensagem)}`;
     window.open(url, '_blank');
+}
+
+function formatarData(data) {
+    if (!data) return '-';
+    if (data.includes('/')) return data;
+    const partes = data.split('-');
+    if (partes.length === 3) {
+        return `${partes[2]}/${partes[1]}/${partes[0]}`;
+    }
+    return data;
 }
 
 // Carregar dados do agendamento
@@ -359,24 +401,24 @@ async function carregarDados() {
         if (!querySnapshot.empty) {
             dadosAgendamento = querySnapshot.docs[0].data();
             dadosAgendamento.id = querySnapshot.docs[0].id;
-            console.log("Agendamento encontrado:", dadosAgendamento);
+            console.log("✅ Agendamento encontrado:", dadosAgendamento);
             
             // Preencher os campos
             if (clienteNome) clienteNome.textContent = dadosAgendamento.cliente || dadosAgendamento.nome || '-';
             if (servicoNome) servicoNome.textContent = dadosAgendamento.servicoNome || dadosAgendamento.servico || '-';
             if (profissionalNome) profissionalNome.textContent = dadosAgendamento.profissional || 'Nutricionista não informado';
-            if (agendamentoData) agendamentoData.textContent = dadosAgendamento.data || '-';
+            if (agendamentoData) agendamentoData.textContent = formatarData(dadosAgendamento.data) || '-';
             if (agendamentoHorario) agendamentoHorario.textContent = dadosAgendamento.horario || '-';
             if (valorTotal) valorTotal.textContent = formatarMoeda(dadosAgendamento.valor || 0);
             
             if (btnConfirmar) btnConfirmar.disabled = true;
             
         } else {
-            console.log("Agendamento não encontrado para o ID:", agendamentoId);
+            console.log("❌ Agendamento não encontrado para o ID:", agendamentoId);
             showMessage("Agendamento não encontrado.", "error");
         }
     } catch (error) {
-        console.error("Erro ao carregar dados:", error);
+        console.error("❌ Erro ao carregar dados:", error);
         showMessage("Erro ao carregar dados do agendamento: " + error.message, "error");
     }
 }
@@ -411,8 +453,8 @@ async function confirmarPagamento() {
         
         const pagamentosRef = collection(db, "pagamentos");
         await addDoc(pagamentosRef, {
-            clienteId: null,
-            servicoId: null,
+            clienteId: dadosAgendamento.clienteId || null,
+            servicoId: dadosAgendamento.servicoId || null,
             agendamentoId: dadosAgendamento.id,
             profissional: dadosAgendamento.profissional,
             valor: dadosAgendamento.valor,
@@ -420,14 +462,15 @@ async function confirmarPagamento() {
             parcelas: parseInt(document.getElementById('parcelas')?.value || 1),
             data: dadosAgendamento.data,
             status: 'pago',
-            observacao: `Pagamento via ${metodoSelecionado} para consulta de ${dadosAgendamento.servicoNome} com ${dadosAgendamento.profissional}`,
+            observacao: `Pagamento via ${metodoSelecionado} para consulta de ${dadosAgendamento.servicoNome}`,
             createdAt: Timestamp.now(),
             atualizadoEm: Timestamp.now()
         });
         
         showMessage("✅ Pagamento realizado com sucesso!", "success");
         
-        if (metodoSelecionado === 'pix' || metodoSelecionado === 'cartao_credito' || metodoSelecionado === 'cartao_debito') {
+        // Enviar WhatsApp apenas para Pix e Cartão
+        if (metodoSelecionado !== 'dinheiro') {
             enviarWhatsAppConfirmacao();
         }
         
@@ -436,7 +479,7 @@ async function confirmarPagamento() {
         }, 3000);
         
     } catch (error) {
-        console.error("Erro ao processar pagamento:", error);
+        console.error("❌ Erro ao processar pagamento:", error);
         showMessage("Erro ao processar pagamento. Tente novamente.", "error");
         if (btnConfirmar) {
             btnConfirmar.disabled = false;
@@ -454,7 +497,7 @@ signInAnonymously(auth).then(() => {
     autenticado = true;
     carregarDados();
 }).catch((error) => {
-    console.error("Erro na autenticação:", error);
+    console.error("❌ Erro na autenticação:", error);
     showMessage("Erro de autenticação.", "error");
 });
 
