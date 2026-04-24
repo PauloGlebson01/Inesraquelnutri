@@ -319,22 +319,55 @@ if (copyPixCodeBtn) {
     });
 }
 
-// Função para enviar WhatsApp de confirmação
+// Função para enviar WhatsApp de confirmação - CORRIGIDA para TODOS os métodos
 function enviarWhatsAppConfirmacao() {
-    if (!dadosAgendamento) return;
+    if (!dadosAgendamento) {
+        console.log("Dados do agendamento não encontrados");
+        return;
+    }
     
     const telefone = dadosAgendamento.telefone || dadosAgendamento.whatsapp;
     if (!telefone) {
-        console.log("Telefone não encontrado");
+        console.log("Telefone não encontrado para envio de WhatsApp");
         return;
     }
     
     const numeroLimpo = telefone.replace(/\D/g, "");
-    if (numeroLimpo.length < 10) return;
+    if (numeroLimpo.length < 10) {
+        console.log("Número de telefone inválido:", numeroLimpo);
+        return;
+    }
 
     let num = numeroLimpo;
     if (num.length === 10) {
         num = num.substring(0, 2) + '9' + num.substring(2);
+    }
+
+    // Texto do método de pagamento baseado no método selecionado
+    let textoPagamento = '';
+    const parcelasSelect = document.getElementById('parcelas');
+    const parcelas = parcelasSelect ? parseInt(parcelasSelect.value) : 1;
+    const valorParcela = dadosAgendamento.valor / parcelas;
+    
+    switch(metodoSelecionado) {
+        case 'pix':
+            textoPagamento = '✅ Pagamento via Pix confirmado instantaneamente';
+            break;
+        case 'cartao_credito':
+            if (parcelas > 1) {
+                textoPagamento = `✅ Pagamento confirmado! ${parcelas}x de ${formatarMoeda(valorParcela)} no cartão de crédito`;
+            } else {
+                textoPagamento = '✅ Pagamento confirmado! Cartão de crédito (à vista)';
+            }
+            break;
+        case 'cartao_debito':
+            textoPagamento = '✅ Pagamento confirmado! Cartão de débito (à vista)';
+            break;
+        case 'dinheiro':
+            textoPagamento = '💰 Pagamento será realizado em DINHEIRO no local da consulta';
+            break;
+        default:
+            textoPagamento = '✅ Pagamento confirmado';
     }
 
     const metodoNome = {
@@ -344,29 +377,45 @@ function enviarWhatsAppConfirmacao() {
         'dinheiro': 'Dinheiro'
     }[metodoSelecionado] || metodoSelecionado;
 
-    const parcelasSelect = document.getElementById('parcelas');
-    const parcelas = parcelasSelect ? parseInt(parcelasSelect.value) : 1;
-    const valorParcela = dadosAgendamento.valor / parcelas;
-
-    const mensagem = `Olá ${dadosAgendamento.cliente}! 🥗✨\n\n` +
-        `✅ *PAGAMENTO CONFIRMADO!*\n\n` +
-        `Sua consulta foi *CONFIRMADA* com sucesso!\n\n` +
+    const mensagem = `Olá ${dadosAgendamento.cliente || dadosAgendamento.nome}! 🥗✨\n\n` +
+        `✅ *CONSULTA CONFIRMADA!*\n\n` +
+        `${textoPagamento}\n\n` +
         `📝 *Detalhes da Consulta:*\n` +
-        `• Plano: ${dadosAgendamento.servicoNome}\n` +
-        `• Nutricionista: ${dadosAgendamento.profissional || 'Nossa equipe'}\n` +
+        `• Plano: ${dadosAgendamento.servicoNome || dadosAgendamento.servico}\n` +
+        `• Nutricionista: ${dadosAgendamento.profissional || 'Dra. Inês Raquel'}\n` +
         `• Data: ${formatarData(dadosAgendamento.data)}\n` +
         `• Horário: ${dadosAgendamento.horario}\n` +
         `• Valor: ${formatarMoeda(dadosAgendamento.valor)}\n\n` +
         `💳 *Forma de Pagamento:* ${metodoNome}\n` +
-        `${parcelas > 1 ? `• ${parcelas}x de ${formatarMoeda(valorParcela)}\n` : ''}\n` +
-        `📍 *Local:* Inês Raquel - Consultório\n\n` +
-        `⚠️ *Importante:*\n` +
-        `⏰ Chegue com 10 minutos de antecedência\n\n` +
+        `${parcelas > 1 && metodoSelecionado === 'cartao_credito' ? `• ${parcelas}x de ${formatarMoeda(valorParcela)}\n` : ''}\n` +
+        `📍 *Local:* Inês Raquel - Consultório\n` +
+        `Eco Medical Sul - R. Hercílio Alves de Souza, 108 - Bancários, João Pessoa - PB, 58051-290 - João Pessoa/PB\n\n` +
+        `⚠️ *Informações importantes:*\n` +
+        `⏰ Chegue com 10 minutos de antecedência\n` +
+        `📄 Leve seus exames e documentos\n` +
+        `💧 Mantenha-se hidratado antes da consulta\n\n` +
+        `${metodoSelecionado === 'dinheiro' ? '💡 Lembre-se de trazer o valor exato em dinheiro!\n\n' : ''}` +
         `✨ *Inês Raquel - Nutrição* ✨\n` +
-        `Cuidando da sua saúde com carinho e dedicação 💚`;
+        `Cuidando da sua saúde com carinho e dedicação 💚\n\n` +
+        `Para remarcar ou cancelar, entre em contato pelo WhatsApp: (83) 99186-3520`;
 
     const url = `https://wa.me/55${num}?text=${encodeURIComponent(mensagem)}`;
-    window.open(url, '_blank');
+    
+    // Abrir WhatsApp com delay para evitar bloqueio de pop-up
+    setTimeout(() => {
+        // Verificar se é mobile ou desktop
+        if (/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+            // Mobile: tenta abrir o app
+            window.location.href = url;
+        } else {
+            // Desktop: abre em nova aba
+            const newWindow = window.open(url, '_blank');
+            if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+                // Se bloqueado, mostrar mensagem alternativa
+                showMessage("📱 Clique aqui para abrir o WhatsApp: " + url, "info");
+            }
+        }
+    }, 500);
 }
 
 function formatarData(data) {
@@ -406,7 +455,7 @@ async function carregarDados() {
             // Preencher os campos
             if (clienteNome) clienteNome.textContent = dadosAgendamento.cliente || dadosAgendamento.nome || '-';
             if (servicoNome) servicoNome.textContent = dadosAgendamento.servicoNome || dadosAgendamento.servico || '-';
-            if (profissionalNome) profissionalNome.textContent = dadosAgendamento.profissional || 'Nutricionista não informado';
+            if (profissionalNome) profissionalNome.textContent = dadosAgendamento.profissional || 'Dra. Inês Raquel';
             if (agendamentoData) agendamentoData.textContent = formatarData(dadosAgendamento.data) || '-';
             if (agendamentoHorario) agendamentoHorario.textContent = dadosAgendamento.horario || '-';
             if (valorTotal) valorTotal.textContent = formatarMoeda(dadosAgendamento.valor || 0);
@@ -423,7 +472,7 @@ async function carregarDados() {
     }
 }
 
-// Confirmar pagamento
+// Confirmar pagamento - CORRIGIDO para enviar WhatsApp SEMPRE
 async function confirmarPagamento() {
     if (!metodoSelecionado) {
         showMessage("Selecione um método de pagamento.", "error");
@@ -444,10 +493,10 @@ async function confirmarPagamento() {
         const agendamentoRef = doc(db, "agendamentos", dadosAgendamento.id);
         await updateDoc(agendamentoRef, {
             status: "confirmado",
-            pagamentoStatus: "pago",
+            pagamentoStatus: metodoSelecionado === 'dinheiro' ? "pendente_local" : "pago",
             metodoPagamento: metodoSelecionado,
             parcelas: parseInt(document.getElementById('parcelas')?.value || 1),
-            dataPagamento: new Date().toISOString().split('T')[0],
+            dataPagamento: metodoSelecionado === 'dinheiro' ? null : new Date().toISOString().split('T')[0],
             atualizadoEm: Timestamp.now()
         });
         
@@ -461,22 +510,23 @@ async function confirmarPagamento() {
             metodo: metodoSelecionado,
             parcelas: parseInt(document.getElementById('parcelas')?.value || 1),
             data: dadosAgendamento.data,
-            status: 'pago',
-            observacao: `Pagamento via ${metodoSelecionado} para consulta de ${dadosAgendamento.servicoNome}`,
+            status: metodoSelecionado === 'dinheiro' ? 'pendente' : 'pago',
+            observacao: metodoSelecionado === 'dinheiro' 
+                ? `Pagamento em dinheiro a ser realizado no local da consulta (${dadosAgendamento.servicoNome})`
+                : `Pagamento via ${metodoSelecionado} para consulta de ${dadosAgendamento.servicoNome}`,
             createdAt: Timestamp.now(),
             atualizadoEm: Timestamp.now()
         });
         
         showMessage("✅ Pagamento realizado com sucesso!", "success");
         
-        // Enviar WhatsApp apenas para Pix e Cartão
-        if (metodoSelecionado !== 'dinheiro') {
-            enviarWhatsAppConfirmacao();
-        }
+        // 🔥 CORREÇÃO PRINCIPAL: Agora envia WhatsApp para TODOS os métodos, incluindo DINHEIRO
+        console.log(`Enviando confirmação para método: ${metodoSelecionado}`);
+        enviarWhatsAppConfirmacao();
         
         setTimeout(() => {
             window.location.href = 'agendamento-confirmado.html';
-        }, 3000);
+        }, 2500);
         
     } catch (error) {
         console.error("❌ Erro ao processar pagamento:", error);

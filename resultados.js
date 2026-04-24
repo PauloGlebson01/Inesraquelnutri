@@ -70,7 +70,150 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-// Converter imagem para Base64
+// ==================== FUNÇÕES DE IMAGEM CORRIGIDAS ====================
+
+// Função otimizada para redimensionar imagens no cliente antes de converter para Base64
+async function redimensionarImagem(file, maxWidth = 1024, maxHeight = 1024, quality = 0.7) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                // Calcular novas dimensões mantendo proporção
+                let width = img.width;
+                let height = img.height;
+                
+                if (width > maxWidth) {
+                    height = (height * maxWidth) / width;
+                    width = maxWidth;
+                }
+                
+                if (height > maxHeight) {
+                    width = (width * maxHeight) / height;
+                    height = maxHeight;
+                }
+                
+                // Criar canvas para redimensionar
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                
+                // Converter para Base64 com compressão
+                const base64 = canvas.toDataURL('image/jpeg', quality);
+                resolve(base64);
+            };
+            img.onerror = reject;
+            img.src = e.target.result;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+}
+
+// Função melhorada para adicionar imagens (com redimensionamento automático)
+async function adicionarImagens(files) {
+    const novasImagens = [];
+    let imagemGrandeIgnorada = false;
+    
+    for (const file of files) {
+        // Verificação de tipo de arquivo (mais flexível)
+        const isImage = file.type.startsWith('image/') || 
+                       file.name.match(/\.(jpg|jpeg|png|gif|webp|bmp)$/i);
+        
+        if (!isImage) {
+            mostrarToast(`Arquivo ${file.name} não é uma imagem válida`, 'erro');
+            continue;
+        }
+        
+        // Verificar tamanho original (agora com limite maior: 10MB)
+        if (file.size > 10 * 1024 * 1024) {
+            if (!imagemGrandeIgnorada) {
+                mostrarToast(`⚠️ ${file.name} é muito grande (>10MB). Apenas imagens até 10MB são aceitas.`, 'erro');
+                imagemGrandeIgnorada = true;
+            }
+            continue;
+        }
+        
+        try {
+            // Mostrar loading para cada imagem
+            if (files.length > 1) {
+                mostrarToast(`📸 Processando ${files.indexOf(file) + 1}/${files.length}...`, 'info');
+            }
+            
+            // Redimensionar imagem automaticamente (max 1024x1024, qualidade 70%)
+            let base64Redimensionada = await redimensionarImagem(file, 1024, 1024, 0.7);
+            
+            if (base64Redimensionada) {
+                // Verificar tamanho do Base64 (limitando a ~500KB após compressão)
+                const base64Size = (base64Redimensionada.length * 3) / 4;
+                if (base64Size > 600 * 1024) { // 600KB
+                    // Tentar compressão mais agressiva
+                    const base64Compactada = await redimensionarImagem(file, 800, 800, 0.5);
+                    if (base64Compactada && (base64Compactada.length * 3) / 4 < 500 * 1024) {
+                        novasImagens.push(base64Compactada);
+                    } else {
+                        novasImagens.push(base64Redimensionada);
+                    }
+                } else {
+                    novasImagens.push(base64Redimensionada);
+                }
+            }
+        } catch (error) {
+            console.error(`Erro ao processar imagem ${file.name}:`, error);
+            mostrarToast(`Erro ao processar ${file.name}. Tente outra imagem.`, 'erro');
+        }
+    }
+    
+    if (novasImagens.length > 0) {
+        imagensTemp = [...imagensTemp, ...novasImagens];
+        
+        // Limite de 10 imagens (mantido)
+        if (imagensTemp.length > 10) {
+            imagensTemp = imagensTemp.slice(0, 10);
+            mostrarToast('Limite de 10 imagens atingido. As primeiras 10 foram mantidas.', 'erro');
+        }
+        
+        renderizarGaleriaImagens();
+        mostrarToast(`${novasImagens.length} imagem(ns) adicionada(s) com sucesso!`, 'sucesso');
+    }
+}
+
+// Função para capturar imagem da câmera (opcional - mobile)
+async function capturarImagemCamera() {
+    try {
+        // Verificar se o dispositivo tem câmera
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            mostrarToast("Seu dispositivo não suporta captura de câmera.", "erro");
+            return;
+        }
+        
+        // Criar input temporário com capture
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.capture = 'environment'; // 'user' para frontal, 'environment' para traseira
+        
+        input.onchange = async (e) => {
+            const files = Array.from(e.target.files);
+            if (files.length > 0) {
+                if (imagensTemp.length + files.length > 10) {
+                    mostrarToast(`Limite de 10 imagens. Você pode adicionar no máximo ${10 - imagensTemp.length} imagem(ns).`, 'erro');
+                    return;
+                }
+                await adicionarImagens(files);
+            }
+        };
+        
+        input.click();
+    } catch (error) {
+        console.error("Erro ao abrir câmera:", error);
+        mostrarToast("Não foi possível acessar a câmera.", "erro");
+    }
+}
+
+// Função para converter imagem para Base64 (fallback)
 function imagemParaBase64(file) {
     return new Promise((resolve, reject) => {
         if (!file) {
@@ -82,38 +225,6 @@ function imagemParaBase64(file) {
         reader.onerror = reject;
         reader.readAsDataURL(file);
     });
-}
-
-// Adicionar múltiplas imagens
-async function adicionarImagens(files) {
-    const novasImagens = [];
-    
-    for (const file of files) {
-        if (!file.type.startsWith('image/')) {
-            mostrarToast(`Arquivo ${file.name} não é uma imagem válida`, 'erro');
-            continue;
-        }
-        
-        if (file.size > 2 * 1024 * 1024) {
-            mostrarToast(`Imagem ${file.name} excede 2MB`, 'erro');
-            continue;
-        }
-        
-        const base64 = await imagemParaBase64(file);
-        if (base64) {
-            novasImagens.push(base64);
-        }
-    }
-    
-    if (novasImagens.length > 0) {
-        imagensTemp = [...imagensTemp, ...novasImagens];
-        if (imagensTemp.length > 10) {
-            imagensTemp = imagensTemp.slice(0, 10);
-            mostrarToast('Limite de 10 imagens atingido. As primeiras 10 foram mantidas.', 'erro');
-        }
-        renderizarGaleriaImagens();
-        mostrarToast(`${novasImagens.length} imagem(ns) adicionada(s)!`, 'sucesso');
-    }
 }
 
 // Remover imagem da galeria temporária
@@ -165,12 +276,155 @@ function resetImagensForm() {
     if (imagemInput) imagemInput.value = '';
 }
 
+// Adicionar estilos CSS para o modal de opções
+function adicionarEstilosModalImagem() {
+    if (document.getElementById('modal-imagem-styles')) return;
+    
+    const style = document.createElement('style');
+    style.id = 'modal-imagem-styles';
+    style.textContent = `
+        .modal-opcoes-imagem {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+            z-index: 10000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-opcoes-content {
+            background: #1e293b;
+            border-radius: 24px;
+            padding: 24px;
+            width: 90%;
+            max-width: 320px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            animation: modalFadeIn 0.3s ease;
+        }
+        
+        .modal-opcoes-content h3 {
+            color: #fff;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+        }
+        
+        .modal-opcoes-content button {
+            width: 100%;
+            padding: 14px;
+            margin-bottom: 12px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .modal-opcoes-content button:first-of-type {
+            background: #10b981;
+            color: white;
+        }
+        
+        .modal-opcoes-content button:first-of-type:hover {
+            background: #059669;
+            transform: translateY(-2px);
+        }
+        
+        .modal-opcoes-content button:nth-of-type(2) {
+            background: #3b82f6;
+            color: white;
+        }
+        
+        .modal-opcoes-content button:nth-of-type(2):hover {
+            background: #2563eb;
+            transform: translateY(-2px);
+        }
+        
+        .modal-opcoes-content button:last-of-type {
+            background: #475569;
+            color: #cbd5e1;
+            margin-bottom: 0;
+        }
+        
+        .modal-opcoes-content button:last-of-type:hover {
+            background: #ef4444;
+            color: white;
+        }
+        
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .modal-opcoes-content {
+                width: 95%;
+                padding: 20px;
+            }
+        }
+    `;
+    document.head.appendChild(style);
+}
+
 // Configurar upload de imagens
 function setupImageUpload() {
     if (!btnAdicionarImagem || !imagemInput) return;
     
     btnAdicionarImagem.addEventListener('click', () => {
-        imagemInput.click();
+        // Detectar se é dispositivo móvel
+        const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+        
+        if (isMobile) {
+            // Criar menu de opções para mobile
+            const modalOpcoes = document.createElement('div');
+            modalOpcoes.className = 'modal-opcoes-imagem';
+            modalOpcoes.innerHTML = `
+                <div class="modal-opcoes-content">
+                    <h3><i class="fa-solid fa-image"></i> Adicionar Imagem</h3>
+                    <button id="opcaoGaleria">📱 Escolher da Galeria</button>
+                    <button id="opcaoCamera">📷 Tirar Foto</button>
+                    <button id="fecharOpcoes">Cancelar</button>
+                </div>
+            `;
+            
+            document.body.appendChild(modalOpcoes);
+            modalOpcoes.style.display = 'flex';
+            
+            document.getElementById('opcaoGaleria')?.addEventListener('click', () => {
+                imagemInput.click();
+                modalOpcoes.remove();
+            });
+            
+            document.getElementById('opcaoCamera')?.addEventListener('click', () => {
+                capturarImagemCamera();
+                modalOpcoes.remove();
+            });
+            
+            document.getElementById('fecharOpcoes')?.addEventListener('click', () => {
+                modalOpcoes.remove();
+            });
+            
+            // Fechar ao clicar fora
+            modalOpcoes.addEventListener('click', (e) => {
+                if (e.target === modalOpcoes) {
+                    modalOpcoes.remove();
+                }
+            });
+        } else {
+            imagemInput.click();
+        }
     });
     
     imagemInput.addEventListener('change', async (e) => {
@@ -179,6 +433,7 @@ function setupImageUpload() {
         
         if (imagensTemp.length + files.length > 10) {
             mostrarToast(`Limite de 10 imagens. Você pode adicionar no máximo ${10 - imagensTemp.length} imagem(ns).`, 'erro');
+            imagemInput.value = '';
             return;
         }
         
@@ -251,7 +506,7 @@ function renderizarResultados() {
                         <i class="fa-regular fa-pen-to-square"></i> Editar
                     </button>
                     <button class="btn-delete-resultado" data-id="${resultado.id}" data-titulo="${escapeHtml(resultado.titulo).replace(/'/g, "\\'")}">
-                        <i class="fa-regular fa-trash-can"></i>
+                        <i class="fa-regular fa-trash-can"></i> Excluir
                     </button>
                 </div>
             </div>
@@ -278,7 +533,6 @@ function renderizarResultados() {
     document.querySelectorAll('.btn-view-galeria').forEach(btn => {
         btn.addEventListener('click', () => {
             const id = btn.getAttribute('data-id');
-            const titulo = btn.getAttribute('data-titulo');
             const resultado = resultados.find(r => r.id === id);
             if (resultado) abrirModalGaleriaView(resultado);
         });
@@ -310,6 +564,16 @@ function abrirModalGaleriaView(resultado) {
                     <div class="galeria-view-caption">Imagem ${index + 1} de ${imagens.length}</div>
                 </div>
             `).join('');
+            
+            // Adicionar evento de clique para abrir em tela cheia (opcional)
+            container.querySelectorAll('.galeria-view-item img').forEach(img => {
+                img.addEventListener('click', () => {
+                    const index = parseInt(img.getAttribute('data-index')) || 0;
+                    if (window.abrirCarrossel) {
+                        window.abrirCarrossel(imagens, resultado.titulo);
+                    }
+                });
+            });
         }
     }
     
@@ -343,6 +607,9 @@ function carregarResultados() {
                 <div class="empty-resultados">
                     <i class="fa-solid fa-circle-exclamation"></i>
                     <p>Erro ao carregar resultados: ${error.message}</p>
+                    <button onclick="location.reload()" style="margin-top: 15px; padding: 8px 16px; background: #10b981; border: none; border-radius: 8px; color: white; cursor: pointer;">
+                        <i class="fa-solid fa-rotate"></i> Tentar novamente
+                    </button>
                 </div>
             `;
         }
@@ -374,7 +641,7 @@ async function salvarResultado(dados) {
         fecharModalResultado();
     } catch (error) {
         console.error("Erro ao salvar resultado:", error);
-        mostrarToast("Erro ao salvar resultado.", "erro");
+        mostrarToast("Erro ao salvar resultado. Tente novamente.", "erro");
     }
 }
 
@@ -500,6 +767,7 @@ window.addEventListener('click', (e) => {
 // Inicialização
 document.addEventListener('DOMContentLoaded', () => {
     setupImageUpload();
+    adicionarEstilosModalImagem();
 });
 
 // Autenticação
