@@ -163,15 +163,32 @@ body {
     width: 100%;
 }
 
+/* ESTILO PARA BOTÕES DE HORÁRIOS - CENTRALIZADO */
 .botoes-horarios {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    display: flex;
+    justify-content: center;
+    align-items: center;
     gap: 12px;
     width: 100%;
+    flex-wrap: wrap;
 }
 
+/* Quando tiver exatamente 3 botões (dias de semana) */
+.botoes-horarios:has(.horario-btn:nth-last-child(3):first-child) {
+    display: flex;
+    justify-content: center;
+}
+
+/* Quando tiver 5 botões (sábado) */
+.botoes-horarios:has(.horario-btn:nth-last-child(5):first-child) {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+}
+
+/* Estilo padrão para os botões */
 .horario-btn {
-    padding: 12px 6px;
+    padding: 12px 24px;
+    min-width: 100px;
     background: #f1f5f9;
     border: 2px solid #e2e8f0;
     border-radius: 40px;
@@ -182,6 +199,11 @@ body {
     color: #1e293b;
     font-size: 0.9rem;
     font-family: inherit;
+}
+
+/* Quando for apenas 3 botões, eles ficam com largura automática e centralizados */
+.botoes-horarios .horario-btn {
+    flex: 0 1 auto;
 }
 
 .horario-btn:hover:not(:disabled) {
@@ -316,16 +338,24 @@ footer {
     .profile h1 {
         font-size: 1.55rem;
     }
-    .botoes-horarios {
-        grid-template-columns: repeat(3, 1fr);
-        gap: 10px;
-    }
+    
     .horario-btn {
-        padding: 10px 4px;
+        padding: 10px 16px;
+        min-width: 80px;
         font-size: 0.8rem;
     }
     
-    /* FORÇA todos os campos com mesmo tamanho no mobile */
+    /* Para 5 botões (sábado) no mobile */
+    .botoes-horarios:has(.horario-btn:nth-last-child(5):first-child) {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+    }
+    
+    /* Para 3 botões (dias de semana) no mobile - continua centralizado */
+    .botoes-horarios:has(.horario-btn:nth-last-child(3):first-child) {
+        gap: 10px;
+    }
+    
     .input-group input,
     .input-group select,
     .date-wrapper input[type="date"] {
@@ -350,7 +380,15 @@ footer {
     .container {
         padding: 20px;
     }
-    .botoes-horarios {
+    
+    .horario-btn {
+        padding: 8px 12px;
+        min-width: 70px;
+        font-size: 0.75rem;
+    }
+    
+    /* Para 5 botões (sábado) no mobile pequeno */
+    .botoes-horarios:has(.horario-btn:nth-last-child(5):first-child) {
         grid-template-columns: repeat(2, 1fr);
         gap: 10px;
     }
@@ -378,16 +416,17 @@ footer {
         font-size: 0.85rem;
         padding: 0 1px;
     }
-    
-    .horario-btn {
-        font-size: 0.75rem;
-        padding: 8px 4px;
-    }
 }
 
 @media (max-width: 380px) {
     .container {
         padding: 16px;
+    }
+    
+    .horario-btn {
+        padding: 8px 10px;
+        min-width: 60px;
+        font-size: 0.7rem;
     }
     
     .input-group input,

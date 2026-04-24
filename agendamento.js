@@ -9,9 +9,7 @@ import {
     query, 
     where, 
     getDocs,
-    Timestamp,
-    updateDoc,
-    doc
+    Timestamp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { 
     getAuth, 
@@ -48,14 +46,19 @@ const profissionalSelect = document.getElementById("profissional");
 const dataInput = document.getElementById("data");
 const horariosDiv = document.getElementById("horarios");
 const horarioHidden = document.getElementById("horario");
+const tipoAtendimentoHidden = document.getElementById("tipoAtendimento");
 const mensagemDiv = document.getElementById("mensagem");
 const loadingDiv = document.getElementById("loading");
 
-// Horários disponíveis
-const horariosDisponiveis = [
-    "09:00", "09:30", "10:00", "10:30", "11:00", "11:30",
-    "13:00", "13:30", "14:00", "14:30", "15:00", "15:30",
-    "16:00", "16:30", "17:00", "17:30"
+// HORÁRIOS SEPARADOS POR TIPO DE ATENDIMENTO
+// Segunda a Sexta - Atendimento Online (3 horários centralizados)
+const horariosOnlineSemana = [
+    "14:00", "15:00", "16:00"
+];
+
+// Sábado - Atendimento Presencial
+const horariosPresencialSabado = [
+    "14:00", "15:00", "16:00", "17:00", "18:00"
 ];
 
 let camposPreenchidos = { 
@@ -116,6 +119,72 @@ if (telefoneInput) {
     });
 }
 
+// Função para verificar o dia da semana ignorando fuso horário
+function getDiaSemana(dataStr) {
+    if (!dataStr) return null;
+    const [ano, mes, dia] = dataStr.split('-').map(Number);
+    const dataUTC = new Date(Date.UTC(ano, mes - 1, dia));
+    return dataUTC.getUTCDay();
+}
+
+// Função para obter o nome do dia da semana
+function getNomeDiaSemana(dataStr) {
+    const dias = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
+    const diaSemana = getDiaSemana(dataStr);
+    return dias[diaSemana];
+}
+
+// Função para obter os horários e tipo de atendimento baseado no dia
+function getInfoAtendimentoPorDia(dataStr) {
+    const diaSemana = getDiaSemana(dataStr);
+    
+    console.log("Data selecionada:", dataStr, "Dia da semana (0=Domingo,6=Sábado):", diaSemana);
+    
+    // Domingo (0) - Sem atendimento
+    if (diaSemana === 0) {
+        return {
+            temAtendimento: false,
+            tipo: null,
+            horarios: [],
+            mensagem: "📅 Não realizamos atendimentos aos domingos. Por favor, escolha outro dia."
+        };
+    }
+    // Sábado (6) - Atendimento Presencial
+    else if (diaSemana === 6) {
+        return {
+            temAtendimento: true,
+            tipo: "presencial",
+            tipoIcone: "🏥",
+            tipoNome: "Presencial",
+            horarios: horariosPresencialSabado,
+            cor: "#7c3aed",
+            corFundo: "#ede9fe",
+            mensagem: "Atendimento Presencial no consultório"
+        };
+    }
+    // Segunda a Sexta (1, 2, 3, 4, 5) - Atendimento Online com 3 horários
+    else if (diaSemana >= 1 && diaSemana <= 5) {
+        return {
+            temAtendimento: true,
+            tipo: "online",
+            tipoIcone: "💻",
+            tipoNome: "Online",
+            horarios: horariosOnlineSemana,
+            cor: "#10b981",
+            corFundo: "#ecfdf5",
+            mensagem: "Atendimento Online via videochamada"
+        };
+    }
+    else {
+        return {
+            temAtendimento: false,
+            tipo: null,
+            horarios: [],
+            mensagem: "Data inválida. Por favor, escolha outra data."
+        };
+    }
+}
+
 function verificarCamposPreenchidos() {
     const nome = nomeInput?.value.trim();
     const telefone = telefoneInput?.value.trim();
@@ -158,7 +227,10 @@ function mostrarMensagemCampos() {
 function configurarDataMinima() {
     if (!dataInput) return;
     const hoje = new Date();
-    const dataMinima = hoje.toISOString().split('T')[0];
+    const ano = hoje.getFullYear();
+    const mes = String(hoje.getMonth() + 1).padStart(2, '0');
+    const dia = String(hoje.getDate()).padStart(2, '0');
+    const dataMinima = `${ano}-${mes}-${dia}`;
     dataInput.min = dataMinima;
     dataInput.value = dataMinima;
 }
@@ -170,24 +242,12 @@ function mostrarMensagem(texto, tipo = 'sucesso') {
     setTimeout(() => { mensagemDiv.textContent = ''; mensagemDiv.className = ''; }, 5000);
 }
 
-function formatarMoeda(valor) {
-    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor);
-}
-
-// Função para verificar se o plano selecionado é gratuito (Retorno)
-function isPlanoGratuito() {
-    const selectedOption = servicoSelect.options[servicoSelect.selectedIndex];
-    return selectedOption && selectedOption.getAttribute('data-gratuito') === 'true';
-}
-
-// Função para formatar data em mensagem WhatsApp
 function formatarDataParaMensagem(dataStr) {
     if (!dataStr) return 'Data não informada';
     const [ano, mes, dia] = dataStr.split('-');
     return `${dia}/${mes}/${ano}`;
 }
 
-// Função para enviar WhatsApp para planos gratuitos (Retorno)
 function enviarMensagemConfirmacaoGratuita(agendamento) {
     const telefone = agendamento.telefone || agendamento.whatsapp;
     if (!telefone) return false;
@@ -197,18 +257,22 @@ function enviarMensagemConfirmacaoGratuita(agendamento) {
     const profissional = agendamento.profissional || 'nutricionista';
     const dataFormatada = formatarDataParaMensagem(agendamento.data);
     const horario = agendamento.horario || '--:--';
+    const tipoAtendimento = agendamento.tipoAtendimento || 'Online';
+    const localAtendimento = tipoAtendimento === 'Presencial' ? 'Consultório' : 'Online (link enviado por WhatsApp)';
 
     const mensagem = `Olá ${cliente}! 🥗✨\n\n` +
         `Sua consulta de *${servico}* foi *CONFIRMADA* com sucesso!\n\n` +
         `📝 *Detalhes:*\n` +
         `• Plano: ${servico}\n` +
         `• Nutricionista: ${profissional}\n` +
+        `• Tipo: *${tipoAtendimento}*\n` +
         `• Data: ${dataFormatada}\n` +
         `• Horário: ${horario}\n` +
+        `• Local: ${localAtendimento}\n` +
         `• Valor: *GRATUITO* 🎉\n\n` +
-        `📍 *Local:* Inês Raquel - Consultório\n\n` +
         `⚠️ *Importante:*\n` +
-        `⏰ Chegue com 10 minutos de antecedência.\n\n` +
+        `⏰ Chegue com 10 minutos de antecedência.\n` +
+        `${tipoAtendimento === 'Online' ? '🔗 O link da videochamada será enviado 15 minutos antes do horário.' : '📍 Endereço: Eco Medical Sul - R. Hercílio Alves de Souza, 108 - Bancários, João Pessoa - PB, 58051-290'}\n\n` +
         `✨ *InêsRaquel* ✨\n` +
         `Cuidando da sua saúde com carinho e dedicação 💚`;
 
@@ -234,7 +298,19 @@ async function atualizarHorarios() {
     
     if (!data || !profissional) return;
     
-    console.log("Atualizando horários para data:", data, "profissional:", profissional);
+    const infoAtendimento = getInfoAtendimentoPorDia(data);
+    
+    if (!infoAtendimento.temAtendimento) {
+        horariosDiv.innerHTML = `
+            <div class="aviso-campos">
+                <i class="fa-solid fa-calendar-xmark"></i>
+                <p>${infoAtendimento.mensagem}</p>
+            </div>
+        `;
+        return;
+    }
+    
+    console.log("Atualizando horários para data:", data, "profissional:", profissional, "tipo:", infoAtendimento.tipo);
     
     if (horariosDiv) {
         horariosDiv.innerHTML = '<div class="loading-horarios"><i class="fas fa-spinner fa-spin"></i> Verificando disponibilidade...</div>';
@@ -259,7 +335,7 @@ async function atualizarHorarios() {
         });
         
         console.log("Horários ocupados para", profissional, ":", ocupados);
-        renderizarHorarios(ocupados);
+        renderizarHorarios(ocupados, data);
         
     } catch (error) {
         console.error("Erro ao buscar horários:", error);
@@ -277,16 +353,62 @@ async function atualizarHorarios() {
     }
 }
 
-function renderizarHorarios(ocupados = []) {
+function renderizarHorarios(ocupados = [], dataSelecionada) {
     if (!horariosDiv) return;
     
+    const infoAtendimento = getInfoAtendimentoPorDia(dataSelecionada);
+    const horariosDoDia = infoAtendimento.horarios;
+    const tipoAtendimento = infoAtendimento.tipo;
+    const tipoIcone = infoAtendimento.tipoIcone;
+    const tipoNome = infoAtendimento.tipoNome;
+    const corDestaque = infoAtendimento.cor;
+    const corFundo = infoAtendimento.corFundo;
+    const nomeDia = getNomeDiaSemana(dataSelecionada);
+    
     horariosDiv.innerHTML = '';
+    
+    const infoHeader = document.createElement('div');
+    infoHeader.style.cssText = `
+        background: ${corFundo};
+        padding: 14px 16px;
+        border-radius: 16px;
+        margin-bottom: 20px;
+        text-align: center;
+        border-left: 4px solid ${corDestaque};
+    `;
+    
+    infoHeader.innerHTML = `
+        <div style="display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap;">
+            <span style="font-size: 2rem;">${tipoIcone}</span>
+            <div>
+                <h3 style="margin: 0; color: ${corDestaque}; font-size: 1.1rem; font-weight: 700;">
+                    Atendimento ${tipoNome}
+                </h3>
+                <p style="margin: 4px 0 0 0; font-size: 0.85rem; color: #475569;">
+                    ${infoAtendimento.mensagem} - ${nomeDia}
+                </p>
+            </div>
+        </div>
+    `;
+    horariosDiv.appendChild(infoHeader);
+    
+    if (horariosDoDia.length === 0) {
+        const aviso = document.createElement('div');
+        aviso.className = 'aviso-campos';
+        aviso.innerHTML = `
+            <i class="fa-solid fa-calendar-day"></i>
+            <p>Nenhum horário disponível para este dia.</p>
+        `;
+        horariosDiv.appendChild(aviso);
+        return;
+    }
+    
     const containerBotoes = document.createElement('div');
     containerBotoes.className = 'botoes-horarios';
     
     let temHorariosDisponiveis = false;
     
-    horariosDisponiveis.forEach(hora => {
+    horariosDoDia.forEach(hora => {
         const isOcupado = ocupados.includes(hora);
         if (!isOcupado) temHorariosDisponiveis = true;
         
@@ -304,7 +426,8 @@ function renderizarHorarios(ocupados = []) {
                 document.querySelectorAll(".horario-btn").forEach(b => b.classList.remove("selecionado"));
                 btn.classList.add("selecionado");
                 if (horarioHidden) horarioHidden.value = hora;
-                console.log("Horário selecionado:", hora);
+                if (tipoAtendimentoHidden) tipoAtendimentoHidden.value = tipoAtendimento === "presencial" ? "Presencial" : "Online";
+                console.log("Horário selecionado:", hora, "Tipo:", tipoAtendimento);
             };
         }
         containerBotoes.appendChild(btn);
@@ -315,12 +438,44 @@ function renderizarHorarios(ocupados = []) {
     if (!temHorariosDisponiveis) {
         const aviso = document.createElement('div');
         aviso.className = 'aviso-campos';
+        aviso.style.marginTop = '16px';
         aviso.innerHTML = `
             <i class="fa-solid fa-calendar-xmark"></i>
             <p>Nenhum horário disponível para este profissional nesta data. Por favor, escolha outra data ou profissional.</p>
         `;
         horariosDiv.appendChild(aviso);
     }
+    
+    const infoComplementar = document.createElement('div');
+    infoComplementar.style.cssText = `
+        margin-top: 20px;
+        padding: 12px;
+        background: #f8fafc;
+        border-radius: 16px;
+        font-size: 0.75rem;
+        color: #475569;
+        text-align: center;
+        border: 1px solid #e2e8f0;
+    `;
+    
+    if (tipoAtendimento === "presencial") {
+        infoComplementar.innerHTML = `
+            <i class="fa-solid fa-location-dot" style="color: #7c3aed; margin-right: 6px;"></i> 
+            <strong>Atendimento Presencial:</strong> Eco Medical Sul - R. Hercílio Alves de Souza, 108 - Bancários, João Pessoa - PB
+            <br>
+            <i class="fa-regular fa-clock"></i> Horário de funcionamento aos sábados: 14:00 às 18:00
+        `;
+    } else {
+        infoComplementar.innerHTML = `
+            <i class="fa-solid fa-video" style="color: #10b981; margin-right: 6px;"></i> 
+            <strong>Atendimento Online:</strong> Você receberá o link da videochamada 15 minutos antes do horário agendado
+            <br>
+            <i class="fa-brands fa-whatsapp" style="margin-right: 4px;"></i> O link será enviado por WhatsApp
+            <br>
+            <i class="fa-regular fa-clock"></i> Horário de funcionamento (segunda a sexta): 14:00, 15:00 e 16:00
+        `;
+    }
+    horariosDiv.appendChild(infoComplementar);
 }
 
 /* ===========================
@@ -336,8 +491,15 @@ if (form) {
         const profissional = profissionalSelect?.value;
         const data = dataInput?.value;
         const horario = horarioHidden?.value;
+        const tipoAtendimento = tipoAtendimentoHidden?.value;
+        
+        let finalTipoAtendimento = tipoAtendimento;
+        if (!finalTipoAtendimento && data) {
+            const infoAtendimento = getInfoAtendimentoPorDia(data);
+            finalTipoAtendimento = infoAtendimento.tipo === "presencial" ? "Presencial" : "Online";
+        }
 
-        console.log("Dados do formulário:", { nome, telefone, servico, profissional, data, horario });
+        console.log("Dados do formulário:", { nome, telefone, servico, profissional, data, horario, tipoAtendimento: finalTipoAtendimento });
 
         if (!nome || !telefone || !servico || !profissional || !data || !horario) {
             mostrarMensagem("⚠️ Preencha todos os campos e escolha um horário.", "erro");
@@ -356,7 +518,6 @@ if (form) {
         const valor = Number(opcaoSelecionada?.dataset?.preco || 0);
         const ehGratuito = opcaoSelecionada?.getAttribute('data-gratuito') === 'true';
 
-        // Dados do agendamento com profissional
         const dadosAgendamento = {
             nome: nome,
             cliente: nome,
@@ -365,6 +526,7 @@ if (form) {
             servico: servico,
             servicoNome: servicoTexto,
             profissional: profissional,
+            tipoAtendimento: finalTipoAtendimento,
             valor: valor,
             data: data,
             horario: horario,
@@ -381,17 +543,13 @@ if (form) {
             console.log("Agendamento salvo com sucesso! ID:", agendamentoId);
             
             if (ehGratuito) {
-                // PLANO GRATUITO (RETORNO) - Confirma direto sem pagamento
                 mostrarMensagem("✅ Agendamento confirmado! Redirecionando...", "sucesso");
-                
-                // Enviar WhatsApp de confirmação para plano gratuito
                 enviarMensagemConfirmacaoGratuita(dadosAgendamento);
                 
                 setTimeout(() => {
                     window.location.href = `agendamento-confirmado.html`;
                 }, 1500);
             } else {
-                // PLANO PAGO - Redireciona para pagamento
                 mostrarMensagem("✅ Agendamento pré-reservado! Redirecionando para pagamento...", "sucesso");
                 
                 setTimeout(() => {
@@ -419,13 +577,14 @@ if (profissionalSelect) profissionalSelect.addEventListener('change', verificarC
 if (dataInput) {
     dataInput.addEventListener('change', () => {
         console.log("Data alterada:", dataInput.value);
+        if (horarioHidden) horarioHidden.value = '';
+        if (tipoAtendimentoHidden) tipoAtendimentoHidden.value = '';
         verificarCamposPreenchidos();
     });
 }
 
 configurarDataMinima();
 
-// Forçar verificação inicial
 setTimeout(() => {
     verificarCamposPreenchidos();
     console.log("Verificação inicial executada");
