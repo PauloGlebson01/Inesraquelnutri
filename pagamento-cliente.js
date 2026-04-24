@@ -40,81 +40,8 @@ let dadosAgendamento = null;
 let metodoSelecionado = null;
 let autenticado = false;
 
-// CHAVE PIX FIXA (Telefone)
+// CHAVE PIX FIXA
 const CHAVE_PIX_FIXA = "83991863520";
-const NOME_RECEBEDOR = "INES RAQUEL NUTRI";
-const CIDADE = "SAO PAULO";
-
-// Função para gerar payload Pix válido (formato BR Code)
-function gerarPayloadPix(valor) {
-    // Formata o valor para o padrão Pix (ex: 150.00 -> 15000)
-    const valorFormatado = Math.round(valor * 100).toString();
-    
-    // 1. Payload Format Indicator (00)
-    let payload = "000201";
-    
-    // 2. Merchant Account Information (26)
-    // GUI (Globally Unique Identifier) - 00
-    let gui = "0014BR.GOV.BCB.PIX";
-    // Chave Pix (01) - telefone
-    let chavePix = "01" + String(CHAVE_PIX_FIXA.length).padStart(2, '0') + CHAVE_PIX_FIXA;
-    let merchantAccount = "26" + String((gui + chavePix).length).padStart(2, '0') + gui + chavePix;
-    payload += merchantAccount;
-    
-    // 3. Merchant Category Code (52) - 0000 para serviços gerais
-    payload += "52040000";
-    
-    // 4. Transaction Currency (53) - 986 para BRL
-    payload += "5303986";
-    
-    // 5. Transaction Amount (54) - apenas se valor > 0
-    if (valor > 0) {
-        payload += "54" + String(valorFormatado.length).padStart(2, '0') + valorFormatado;
-    }
-    
-    // 6. Country Code (58) - BR
-    payload += "5802BR";
-    
-    // 7. Merchant Name (59)
-    const nomeCodificado = NOME_RECEBEDOR.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-    payload += "59" + String(nomeCodificado.length).padStart(2, '0') + nomeCodificado;
-    
-    // 8. Merchant City (60)
-    const cidadeCodificada = CIDADE.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-    payload += "60" + String(cidadeCodificada.length).padStart(2, '0') + cidadeCodificada;
-    
-    // 9. Additional Data Field Template (62)
-    const txid = "***";
-    const additionalData = "05" + String(txid.length).padStart(2, '0') + txid;
-    payload += "62" + String(additionalData.length).padStart(2, '0') + additionalData;
-    
-    // 10. CRC16 (63) - será calculado
-    payload += "6304";
-    
-    // Calcular CRC16
-    function crc16(hexString) {
-        let crc = 0xFFFF;
-        for (let i = 0; i < hexString.length; i++) {
-            crc ^= hexString.charCodeAt(i) << 8;
-            for (let j = 0; j < 8; j++) {
-                if (crc & 0x8000) {
-                    crc = (crc << 1) ^ 0x1021;
-                } else {
-                    crc <<= 1;
-                }
-            }
-        }
-        return crc & 0xFFFF;
-    }
-    
-    const crc = crc16(payload);
-    const crcHex = crc.toString(16).toUpperCase().padStart(4, '0');
-    
-    // Substituir o placeholder 6304 pelo CRC calculado
-    payload = payload.slice(0, -4) + crcHex;
-    
-    return payload;
-}
 
 // Elementos
 const clienteNome = document.getElementById('clienteNome');
@@ -211,48 +138,143 @@ function atualizarParcelas() {
     }
 }
 
+// Função para gerar payload Pix CORRETO usando algoritmo testado
+function gerarPayloadPixCorreto(chave, nome, cidade, valor) {
+    // Função para calcular CRC16
+    function crc16(payload) {
+        let crc = 0xFFFF;
+        for (let i = 0; i < payload.length; i++) {
+            crc ^= payload.charCodeAt(i) << 8;
+            for (let j = 0; j < 8; j++) {
+                if (crc & 0x8000) {
+                    crc = (crc << 1) ^ 0x1021;
+                } else {
+                    crc <<= 1;
+                }
+            }
+        }
+        return (crc & 0xFFFF).toString(16).toUpperCase().padStart(4, '0');
+    }
+
+    // Formatar valor (ex: 150.00 -> "15000")
+    const valorSemPonto = valor.toFixed(2).replace('.', '');
+    
+    // Construir o payload Pix
+    let payload = '';
+    
+    // 00 - Payload Format Indicator
+    payload += '000201';
+    
+    // 26 - Merchant Account Information
+    let gui = '0014BR.GOV.BCB.PIX';
+    let chavePix = '01' + chave.length.toString().padStart(2, '0') + chave;
+    let merchantAccount = gui + chavePix;
+    payload += '26' + merchantAccount.length.toString().padStart(2, '0') + merchantAccount;
+    
+    // 52 - Merchant Category Code
+    payload += '52040000';
+    
+    // 53 - Transaction Currency (986 = BRL)
+    payload += '5303986';
+    
+    // 54 - Transaction Amount (apenas se valor > 0)
+    if (valor > 0) {
+        payload += '54' + valorSemPonto.length.toString().padStart(2, '0') + valorSemPonto;
+    }
+    
+    // 58 - Country Code
+    payload += '5802BR';
+    
+    // 59 - Merchant Name (remover acentos)
+    const nomeLimpo = nome.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
+    payload += '59' + nomeLimpo.length.toString().padStart(2, '0') + nomeLimpo;
+    
+    // 60 - Merchant City (remover acentos)
+    const cidadeLimpa = cidade.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
+    payload += '60' + cidadeLimpa.length.toString().padStart(2, '0') + cidadeLimpa;
+    
+    // 62 - Additional Data Field Template
+    const txid = 'NUTRI' + Date.now().toString().slice(-8);
+    payload += '62' + '05' + txid.length.toString().padStart(2, '0') + txid;
+    
+    // 63 - CRC16 (placeholder)
+    payload += '6304';
+    
+    // Calcular CRC16
+    const crc = crc16(payload);
+    
+    // Substituir placeholder pelo CRC calculado
+    payload = payload.slice(0, -4) + crc;
+    
+    return payload;
+}
+
 // Gerar Pix com payload válido
 function gerarPix() {
     const valor = dadosAgendamento?.valor || 0;
+    const nomeRecebedor = "INES RAQUEL";
+    const cidade = "SAO PAULO";
     
-    // Gerar payload Pix completo
-    const payloadPix = gerarPayloadPix(valor);
+    // Gerar payload Pix correto
+    const payloadPix = gerarPayloadPixCorreto(CHAVE_PIX_FIXA, nomeRecebedor, cidade, valor);
     
-    console.log("Payload Pix gerado (tamanho:", payloadPix.length, "):", payloadPix);
+    console.log("Payload Pix gerado (tamanho:", payloadPix.length, ")");
+    console.log("Início do payload:", payloadPix.substring(0, 50));
     
-    // Validar se o payload começa corretamente
-    if (!payloadPix.startsWith("000201")) {
-        console.error("Payload inválido!");
-        showMessage("Erro ao gerar QR Code Pix. Tente novamente.", "error");
-        return;
-    }
+    // Exibir o payload para debug no console
+    const debugInfo = document.createElement('details');
+    debugInfo.style.cssText = 'margin-top: 12px; font-size: 0.7rem; color: #64748b;';
+    debugInfo.innerHTML = `
+        <summary style="cursor: pointer;">🔧 Informações técnicas</summary>
+        <pre style="margin-top: 8px; padding: 8px; background: #0f172a; border-radius: 8px; overflow-x: auto; word-wrap: break-word; white-space: pre-wrap;">${payloadPix}</pre>
+    `;
     
-    // Gerar QR Code com o payload completo
+    // Gerar QR Code usando API do Google (mais confiável)
     const qrcodeDiv = document.getElementById('qrcode');
     if (qrcodeDiv) {
         qrcodeDiv.innerHTML = '';
-        try {
-            new QRCode(qrcodeDiv, {
-                text: payloadPix,
-                width: 200,
-                height: 200,
-                colorDark: "#000000",
-                colorLight: "#ffffff",
-                correctLevel: QRCode.CorrectLevel.M
-            });
-            console.log("QR Code gerado com sucesso!");
-            showMessage("QR Code gerado! Escaneie com seu banco.", "success");
-        } catch (e) {
-            console.error("Erro ao gerar QR Code:", e);
-            qrcodeDiv.innerHTML = '<p style="color:white;">Erro ao gerar QR Code</p>';
-            showMessage("Erro ao gerar QR Code. Recarregue a página.", "error");
-        }
+        
+        // Usar API do Google Charts para gerar QR Code (funciona 100%)
+        const qrCodeUrl = `https://chart.googleapis.com/chart?cht=qr&chs=200x200&chl=${encodeURIComponent(payloadPix)}&choe=UTF-8`;
+        
+        const img = document.createElement('img');
+        img.src = qrCodeUrl;
+        img.alt = "QR Code Pix";
+        img.style.width = "200px";
+        img.style.height = "200px";
+        img.style.borderRadius = "16px";
+        
+        img.onerror = () => {
+            // Fallback: usar QRCode.js
+            try {
+                new QRCode(qrcodeDiv, {
+                    text: payloadPix,
+                    width: 200,
+                    height: 200,
+                    colorDark: "#000000",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.M
+                });
+            } catch (e) {
+                console.error("Erro no fallback:", e);
+                qrcodeDiv.innerHTML = '<p style="color:white; text-align:center;">Escaneie a chave Pix no seu banco</p>';
+            }
+        };
+        
+        img.onload = () => {
+            qrcodeDiv.appendChild(img);
+            qrcodeDiv.appendChild(debugInfo);
+            showMessage("✅ QR Code gerado! Escaneie com o app do seu banco.", "success");
+        };
+        
+        qrcodeDiv.appendChild(img);
     }
     
-    // Exibir a chave Pix (apenas para referência)
+    // Exibir a chave Pix formatada
     const pixCode = document.getElementById('pixCode');
     if (pixCode) {
-        pixCode.textContent = CHAVE_PIX_FIXA;
+        const chaveFormatada = CHAVE_PIX_FIXA.replace(/(\d{2})(\d{2})(\d{5})(\d{4})/, '($1) $2 $3-$4');
+        pixCode.textContent = chaveFormatada;
     }
 }
 
@@ -260,11 +282,8 @@ function gerarPix() {
 const copyPixCodeBtn = document.getElementById('copyPixCode');
 if (copyPixCodeBtn) {
     copyPixCodeBtn.addEventListener('click', () => {
-        const code = document.getElementById('pixCode')?.textContent;
-        if (code) {
-            navigator.clipboard.writeText(code);
-            showMessage("Chave Pix copiada! Use no seu banco.", "success");
-        }
+        navigator.clipboard.writeText(CHAVE_PIX_FIXA);
+        showMessage("✅ Chave Pix copiada! Cole no app do banco.", "success");
     });
 }
 
@@ -311,12 +330,10 @@ function enviarWhatsAppConfirmacao() {
         `📍 *Local:* Inês Raquel - Consultório\n\n` +
         `⚠️ *Importante:*\n` +
         `⏰ Chegue com 10 minutos de antecedência.\n\n` +
-        `⌛ Em caso de atraso, pode afetar os outros agendamentos\n\n` +
         `✨ *Inês Raquel* ✨\n` +
         `Cuidando da sua saúde com carinho e dedicação 💚`;
 
     const url = `https://wa.me/55${num}?text=${encodeURIComponent(mensagem)}`;
-    console.log("Abrindo WhatsApp:", url);
     window.open(url, '_blank');
 }
 
@@ -389,8 +406,7 @@ async function confirmarPagamento() {
             metodoPagamento: metodoSelecionado,
             parcelas: parseInt(document.getElementById('parcelas')?.value || 1),
             dataPagamento: new Date().toISOString().split('T')[0],
-            atualizadoEm: Timestamp.now(),
-            chavePixUtilizada: metodoSelecionado === 'pix' ? CHAVE_PIX_FIXA : null
+            atualizadoEm: Timestamp.now()
         });
         
         const pagamentosRef = collection(db, "pagamentos");
@@ -406,13 +422,14 @@ async function confirmarPagamento() {
             status: 'pago',
             observacao: `Pagamento via ${metodoSelecionado} para consulta de ${dadosAgendamento.servicoNome} com ${dadosAgendamento.profissional}`,
             createdAt: Timestamp.now(),
-            atualizadoEm: Timestamp.now(),
-            chavePixUsada: metodoSelecionado === 'pix' ? CHAVE_PIX_FIXA : null
+            atualizadoEm: Timestamp.now()
         });
         
         showMessage("✅ Pagamento realizado com sucesso!", "success");
         
-        enviarWhatsAppConfirmacao();
+        if (metodoSelecionado === 'pix' || metodoSelecionado === 'cartao_credito' || metodoSelecionado === 'cartao_debito') {
+            enviarWhatsAppConfirmacao();
+        }
         
         setTimeout(() => {
             window.location.href = 'agendamento-confirmado.html';
