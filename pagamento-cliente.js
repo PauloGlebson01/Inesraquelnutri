@@ -40,6 +40,82 @@ let dadosAgendamento = null;
 let metodoSelecionado = null;
 let autenticado = false;
 
+// CHAVE PIX FIXA (Telefone)
+const CHAVE_PIX_FIXA = "83991863520";
+const NOME_RECEBEDOR = "INES RAQUEL NUTRI";
+const CIDADE = "SAO PAULO";
+
+// Função para gerar payload Pix válido (formato BR Code)
+function gerarPayloadPix(valor) {
+    // Formata o valor para o padrão Pix (ex: 150.00 -> 15000)
+    const valorFormatado = Math.round(valor * 100).toString();
+    
+    // 1. Payload Format Indicator (00)
+    let payload = "000201";
+    
+    // 2. Merchant Account Information (26)
+    // GUI (Globally Unique Identifier) - 00
+    let gui = "0014BR.GOV.BCB.PIX";
+    // Chave Pix (01) - telefone
+    let chavePix = "01" + String(CHAVE_PIX_FIXA.length).padStart(2, '0') + CHAVE_PIX_FIXA;
+    let merchantAccount = "26" + String((gui + chavePix).length).padStart(2, '0') + gui + chavePix;
+    payload += merchantAccount;
+    
+    // 3. Merchant Category Code (52) - 0000 para serviços gerais
+    payload += "52040000";
+    
+    // 4. Transaction Currency (53) - 986 para BRL
+    payload += "5303986";
+    
+    // 5. Transaction Amount (54) - apenas se valor > 0
+    if (valor > 0) {
+        payload += "54" + String(valorFormatado.length).padStart(2, '0') + valorFormatado;
+    }
+    
+    // 6. Country Code (58) - BR
+    payload += "5802BR";
+    
+    // 7. Merchant Name (59)
+    const nomeCodificado = NOME_RECEBEDOR.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    payload += "59" + String(nomeCodificado.length).padStart(2, '0') + nomeCodificado;
+    
+    // 8. Merchant City (60)
+    const cidadeCodificada = CIDADE.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    payload += "60" + String(cidadeCodificada.length).padStart(2, '0') + cidadeCodificada;
+    
+    // 9. Additional Data Field Template (62)
+    const txid = "***";
+    const additionalData = "05" + String(txid.length).padStart(2, '0') + txid;
+    payload += "62" + String(additionalData.length).padStart(2, '0') + additionalData;
+    
+    // 10. CRC16 (63) - será calculado
+    payload += "6304";
+    
+    // Calcular CRC16
+    function crc16(hexString) {
+        let crc = 0xFFFF;
+        for (let i = 0; i < hexString.length; i++) {
+            crc ^= hexString.charCodeAt(i) << 8;
+            for (let j = 0; j < 8; j++) {
+                if (crc & 0x8000) {
+                    crc = (crc << 1) ^ 0x1021;
+                } else {
+                    crc <<= 1;
+                }
+            }
+        }
+        return crc & 0xFFFF;
+    }
+    
+    const crc = crc16(payload);
+    const crcHex = crc.toString(16).toUpperCase().padStart(4, '0');
+    
+    // Substituir o placeholder 6304 pelo CRC calculado
+    payload = payload.slice(0, -4) + crcHex;
+    
+    return payload;
+}
+
 // Elementos
 const clienteNome = document.getElementById('clienteNome');
 const servicoNome = document.getElementById('servicoNome');
@@ -135,42 +211,59 @@ function atualizarParcelas() {
     }
 }
 
-// Gerar Pix
+// Gerar Pix com payload válido
 function gerarPix() {
     const valor = dadosAgendamento?.valor || 0;
-    const pixKey = `00020126360014BR.GOV.BCB.PIX0114${Math.random().toString(36).substring(2, 15)}5204000053039865404${Math.floor(valor * 100).toString()}5802BR5925NutriEquilíbrio6009SAO PAULO62070503***6304`;
     
+    // Gerar payload Pix completo
+    const payloadPix = gerarPayloadPix(valor);
+    
+    console.log("Payload Pix gerado (tamanho:", payloadPix.length, "):", payloadPix);
+    
+    // Validar se o payload começa corretamente
+    if (!payloadPix.startsWith("000201")) {
+        console.error("Payload inválido!");
+        showMessage("Erro ao gerar QR Code Pix. Tente novamente.", "error");
+        return;
+    }
+    
+    // Gerar QR Code com o payload completo
     const qrcodeDiv = document.getElementById('qrcode');
     if (qrcodeDiv) {
         qrcodeDiv.innerHTML = '';
         try {
             new QRCode(qrcodeDiv, {
-                text: pixKey,
-                width: 180,
-                height: 180,
+                text: payloadPix,
+                width: 200,
+                height: 200,
                 colorDark: "#000000",
                 colorLight: "#ffffff",
-                correctLevel: QRCode.CorrectLevel.H
+                correctLevel: QRCode.CorrectLevel.M
             });
+            console.log("QR Code gerado com sucesso!");
+            showMessage("QR Code gerado! Escaneie com seu banco.", "success");
         } catch (e) {
             console.error("Erro ao gerar QR Code:", e);
+            qrcodeDiv.innerHTML = '<p style="color:white;">Erro ao gerar QR Code</p>';
+            showMessage("Erro ao gerar QR Code. Recarregue a página.", "error");
         }
     }
     
+    // Exibir a chave Pix (apenas para referência)
     const pixCode = document.getElementById('pixCode');
     if (pixCode) {
-        pixCode.textContent = pixKey;
+        pixCode.textContent = CHAVE_PIX_FIXA;
     }
 }
 
-// Copiar código Pix
+// Copiar chave Pix
 const copyPixCodeBtn = document.getElementById('copyPixCode');
 if (copyPixCodeBtn) {
     copyPixCodeBtn.addEventListener('click', () => {
         const code = document.getElementById('pixCode')?.textContent;
         if (code) {
             navigator.clipboard.writeText(code);
-            showMessage("Código Pix copiado!", "success");
+            showMessage("Chave Pix copiada! Use no seu banco.", "success");
         }
     });
 }
@@ -215,11 +308,11 @@ function enviarWhatsAppConfirmacao() {
         `• Valor: ${formatarMoeda(dadosAgendamento.valor)}\n\n` +
         `💳 *Forma de Pagamento:* ${metodoNome}\n` +
         `${parcelas > 1 ? `• ${parcelas}x de ${formatarMoeda(valorParcela)}\n` : ''}\n` +
-        `📍 *Local:* NutriEquilíbrio - Consultório\n\n` +
+        `📍 *Local:* Inês Raquel - Consultório\n\n` +
         `⚠️ *Importante:*\n` +
         `⏰ Chegue com 10 minutos de antecedência.\n\n` +
         `⌛ Em caso de atraso, pode afetar os outros agendamentos\n\n` +
-        `✨ *NutriEquilíbrio* ✨\n` +
+        `✨ *Inês Raquel* ✨\n` +
         `Cuidando da sua saúde com carinho e dedicação 💚`;
 
     const url = `https://wa.me/55${num}?text=${encodeURIComponent(mensagem)}`;
@@ -296,7 +389,8 @@ async function confirmarPagamento() {
             metodoPagamento: metodoSelecionado,
             parcelas: parseInt(document.getElementById('parcelas')?.value || 1),
             dataPagamento: new Date().toISOString().split('T')[0],
-            atualizadoEm: Timestamp.now()
+            atualizadoEm: Timestamp.now(),
+            chavePixUtilizada: metodoSelecionado === 'pix' ? CHAVE_PIX_FIXA : null
         });
         
         const pagamentosRef = collection(db, "pagamentos");
@@ -312,7 +406,8 @@ async function confirmarPagamento() {
             status: 'pago',
             observacao: `Pagamento via ${metodoSelecionado} para consulta de ${dadosAgendamento.servicoNome} com ${dadosAgendamento.profissional}`,
             createdAt: Timestamp.now(),
-            atualizadoEm: Timestamp.now()
+            atualizadoEm: Timestamp.now(),
+            chavePixUsada: metodoSelecionado === 'pix' ? CHAVE_PIX_FIXA : null
         });
         
         showMessage("✅ Pagamento realizado com sucesso!", "success");
