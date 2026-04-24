@@ -72,6 +72,26 @@ let usuarioAutenticado = false;
 let autenticacaoTentada = false;
 
 /* ===========================
+   FUNÇÃO PARA FECHAR O CALENDÁRIO AUTOMATICAMENTE
+=========================== */
+function fecharCalendarioAutomaticamente() {
+    if (!dataInput) return;
+    
+    // Forçar o blur (perder foco) para fechar o calendário
+    dataInput.blur();
+    
+    // Para navegadores baseados em WebKit (Chrome, Edge, Safari)
+    // Disparar evento de blur manualmente
+    const blurEvent = new Event('blur', { bubbles: true });
+    dataInput.dispatchEvent(blurEvent);
+    
+    // Método alternativo: simular clique fora
+    document.body.click();
+    
+    console.log("Calendário fechado automaticamente após seleção da data");
+}
+
+/* ===========================
    AUTENTICAÇÃO ANÔNIMA
 =========================== */
 function autenticar() {
@@ -574,12 +594,32 @@ if (form) {
 if (nomeInput) nomeInput.addEventListener('input', verificarCamposPreenchidos);
 if (servicoSelect) servicoSelect.addEventListener('change', verificarCamposPreenchidos);
 if (profissionalSelect) profissionalSelect.addEventListener('change', verificarCamposPreenchidos);
+
+// EVENTO PRINCIPAL PARA FECHAR O CALENDÁRIO AUTOMATICAMENTE
 if (dataInput) {
+    // Quando o usuário clica em uma data (change é disparado quando seleciona)
     dataInput.addEventListener('change', () => {
-        console.log("Data alterada:", dataInput.value);
+        console.log("Data selecionada:", dataInput.value);
+        
+        // Resetar horário selecionado quando mudar a data
         if (horarioHidden) horarioHidden.value = '';
         if (tipoAtendimentoHidden) tipoAtendimentoHidden.value = '';
+        
+        // Fechar o calendário automaticamente
+        fecharCalendarioAutomaticamente();
+        
+        // Verificar campos preenchidos
         verificarCamposPreenchidos();
+    });
+    
+    // Para navegadores móveis que usam 'blur' de forma diferente
+    dataInput.addEventListener('blur', () => {
+        // Pequeno delay para garantir que a seleção foi concluída
+        setTimeout(() => {
+            if (dataInput.value) {
+                verificarCamposPreenchidos();
+            }
+        }, 100);
     });
 }
 
