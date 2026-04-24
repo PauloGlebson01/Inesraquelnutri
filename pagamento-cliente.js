@@ -41,9 +41,9 @@ let metodoSelecionado = null;
 let autenticado = false;
 
 // CHAVE PIX FIXA
-const CHAVE_PIX_FIXA = "83991863520";
+const CHAVE_PIX_FIXA = "(83) 99186-3520";
 const NOME_RECEBEDOR = "INES RAQUEL";
-const CIDADE = "SAO PAULO";
+const CIDADE = "JOAO PESSOA";
 
 // Elementos
 const clienteNome = document.getElementById('clienteNome');
