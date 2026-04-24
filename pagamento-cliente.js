@@ -259,9 +259,8 @@ function gerarPix() {
                 pixCode.textContent = chaveFormatada;
             }
             
-            // Adicionar instruções e botão de confirmação
+            // Adicionar instruções
             adicionarInstrucoesPix(valor);
-            adicionarBotaoConfirmacaoManual();
             
         } catch (error) {
             console.error("❌ Erro ao gerar Pix:", error);
@@ -281,12 +280,8 @@ function gerarPix() {
 
 // Adicionar instruções de pagamento
 function adicionarInstrucoesPix(valor) {
-    // Remove instruções antigas se existirem
-    const instrucoesAntigas = document.querySelector('.pix-instructions');
-    if (instrucoesAntigas) instrucoesAntigas.remove();
-    
     const pixContainer = document.querySelector('.pix-section');
-    if (pixContainer) {
+    if (pixContainer && !document.querySelector('.pix-instructions')) {
         const instrucoes = document.createElement('div');
         instrucoes.className = 'pix-instructions';
         instrucoes.style.marginTop = '20px';
@@ -308,82 +303,11 @@ function adicionarInstrucoesPix(valor) {
                 3️⃣ Autorize o pagamento no seu banco
             </p>
             <p style="color: #fff; font-size: 0.85rem;">
-                4️⃣ Clique em <strong style="color: #10b981;">"Já Paguei via Pix"</strong> para confirmar
+                4️⃣ Volte e clique em <strong>"Confirmar Pagamento"</strong>
             </p>
         `;
         pixContainer.appendChild(instrucoes);
     }
-}
-
-// Adicionar botão de confirmação manual para Pix
-function adicionarBotaoConfirmacaoManual() {
-    const pixContainer = document.querySelector('.pix-section');
-    if (!pixContainer) return;
-    
-    // Remove botão existente se houver
-    const btnExistente = document.getElementById('btnConfirmarPagamentoManual');
-    if (btnExistente) btnExistente.remove();
-    
-    const btnManual = document.createElement('button');
-    btnManual.id = 'btnConfirmarPagamentoManual';
-    btnManual.innerHTML = '<i class="fa-solid fa-check-circle"></i> Já Paguei via Pix';
-    btnManual.style.cssText = `
-        width: 100%;
-        margin-top: 20px;
-        padding: 14px;
-        background: linear-gradient(135deg, #10b981, #059669);
-        border: none;
-        border-radius: 12px;
-        color: white;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-    `;
-    
-    btnManual.onmouseover = () => {
-        btnManual.style.transform = 'translateY(-2px)';
-        btnManual.style.boxShadow = '0 10px 25px rgba(16, 185, 129, 0.4)';
-    };
-    
-    btnManual.onmouseout = () => {
-        btnManual.style.transform = 'translateY(0)';
-        btnManual.style.boxShadow = 'none';
-    };
-    
-    btnManual.onclick = async () => {
-        if (btnManual.disabled) return;
-        
-        btnManual.disabled = true;
-        btnManual.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Verificando pagamento...';
-        
-        // Confirmar com o usuário
-        const confirmado = confirm(
-            "⚠️ ATENÇÃO:\n\n" +
-            "Antes de confirmar, verifique se você:\n" +
-            "✅ Escaneou o QR Code\n" +
-            "✅ Autorizou o pagamento no app do banco\n" +
-            "✅ O valor foi debitado da sua conta\n\n" +
-            "Você já realizou o pagamento via Pix?"
-        );
-        
-        if (!confirmado) {
-            btnManual.disabled = false;
-            btnManual.innerHTML = '<i class="fa-solid fa-check-circle"></i> Já Paguei via Pix';
-            return;
-        }
-        
-        // Simular verificação (em produção, isso seria uma chamada à API do banco)
-        setTimeout(async () => {
-            await confirmarPagamento();
-            btnManual.disabled = false;
-        }, 1000);
-    };
-    
-    pixContainer.appendChild(btnManual);
 }
 
 // Copiar chave Pix
@@ -545,7 +469,7 @@ async function confirmarPagamento() {
         
         showMessage("✅ Pagamento realizado com sucesso!", "success");
         
-        // Enviar WhatsApp apenas para Pix e Cartão (não para dinheiro)
+        // Enviar WhatsApp apenas para Pix e Cartão
         if (metodoSelecionado !== 'dinheiro') {
             enviarWhatsAppConfirmacao();
         }
@@ -565,26 +489,7 @@ async function confirmarPagamento() {
 }
 
 if (btnConfirmar) {
-    btnConfirmar.addEventListener('click', () => {
-        // Para Pix, verificar se o botão manual já foi usado
-        if (metodoSelecionado === 'pix') {
-            const confirmado = confirm(
-                "⚠️ ATENÇÃO:\n\n" +
-                "Antes de confirmar, verifique se você:\n" +
-                "✅ Escaneou o QR Code\n" +
-                "✅ Autorizou o pagamento no app do banco\n" +
-                "✅ O valor foi debitado da sua conta\n\n" +
-                "Você já realizou o pagamento via Pix?"
-            );
-            
-            if (!confirmado) {
-                btnConfirmar.disabled = false;
-                btnConfirmar.innerHTML = '<i class="fa-solid fa-lock"></i> Confirmar Pagamento';
-                return;
-            }
-        }
-        confirmarPagamento();
-    });
+    btnConfirmar.addEventListener('click', confirmarPagamento);
 }
 
 // Autenticação
