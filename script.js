@@ -872,7 +872,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         try {
             new QRCode(qrContainer, {
-                text: "https://pauloglebson01.github.io/Inesraquelnutri/",
+                text: "https://inesraquelnutri.vercel.app",
                 width: 256,
                 height: 256,
                 colorDark: "#10b981",
