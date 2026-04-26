@@ -9,9 +9,7 @@ import {
     query, 
     where, 
     getDocs,
-    Timestamp,
-    setDoc,      // ✅ ADICIONADO
-    doc          // ✅ ADICIONADO para referência de documento
+    Timestamp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { 
     getAuth, 
@@ -23,16 +21,15 @@ import {
    CONFIGURAÇÃO FIREBASE
 =========================== */
 const firebaseConfig = {
-  apiKey: "AIzaSyAmodWGagSV-yco1FQ1-U81Xhd-y4NsE3s",
-  authDomain: "ines-raquel-softclick-nutri.firebaseapp.com",
-  projectId: "ines-raquel-softclick-nutri",
-  storageBucket: "ines-raquel-softclick-nutri.firebasestorage.app",
-  messagingSenderId: "284677746064",
-  appId: "1:284677746064:web:4daac55dd6b2491dbd9715",
-  measurementId: "G-5C0YC43V2G"
+  apiKey: "AIzaSyAtpeuw5e9IgctiZh2UROXMEk-10BcUHAI",
+  authDomain: "nutri-agendamentos.firebaseapp.com",
+  projectId: "nutri-agendamentos",
+  storageBucket: "nutri-agendamentos.firebasestorage.app",
+  messagingSenderId: "192742643803",
+  appId: "1:192742643803:web:4cf93b5fdcbfa8949d077e",
+  measurementId: "G-CNQ26DG1N0"
 };
 
-// Inicializa o Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -43,6 +40,7 @@ const db = getFirestore(app);
 const form = document.getElementById("formAgendamento");
 const nomeInput = document.getElementById("nome");
 const telefoneInput = document.getElementById("telefone");
+const emailInput = document.getElementById("email");
 const servicoSelect = document.getElementById("servico");
 const profissionalSelect = document.getElementById("profissional");
 const dataInput = document.getElementById("data");
@@ -52,7 +50,7 @@ const tipoAtendimentoHidden = document.getElementById("tipoAtendimento");
 const mensagemDiv = document.getElementById("mensagem");
 const loadingDiv = document.getElementById("loading");
 
-// HORÁRIOS SEPARADOS POR TIPO DE ATENDIMENTO
+// HORÁRIOS
 const horariosOnlineSemana = ["14:00", "15:00", "16:00"];
 const horariosPresencialSabado = ["14:00", "15:00", "16:00", "17:00", "18:00"];
 
@@ -66,9 +64,6 @@ let camposPreenchidos = {
 let usuarioAutenticado = false;
 let autenticacaoTentada = false;
 
-/* ===========================
-   FUNÇÃO PARA MOSTRAR ERROS VISÍVEIS AO CLIENTE
-=========================== */
 function mostrarErroCliente(mensagem) {
     if (!horariosDiv) return;
     horariosDiv.innerHTML = `
@@ -83,7 +78,7 @@ function mostrarErroCliente(mensagem) {
 }
 
 /* ===========================
-   AUTENTICAÇÃO ANÔNIMA COM RETRY
+   AUTENTICAÇÃO
 =========================== */
 function autenticar(tentativa = 1) {
     const maxTentativas = 3;
@@ -97,9 +92,7 @@ function autenticar(tentativa = 1) {
         })
         .catch((error) => {
             console.error(`❌ Erro na autenticação (tentativa ${tentativa}/${maxTentativas}):`, error);
-            
             if (tentativa < maxTentativas) {
-                // Aguarda 1 segundo e tenta novamente
                 setTimeout(() => autenticar(tentativa + 1), 1000);
             } else {
                 autenticacaoTentada = true;
@@ -108,7 +101,6 @@ function autenticar(tentativa = 1) {
         });
 }
 
-// Inicia autenticação
 autenticar();
 
 onAuthStateChanged(auth, (user) => {
@@ -258,6 +250,23 @@ function formatarDataParaMensagem(dataStr) {
     return `${dia}/${mes}/${ano}`;
 }
 
+/* ===========================
+   FUNÇÕES DE WHATSAPP (APENAS PARA PLANOS GRATUITOS)
+=========================== */
+function enviarWhatsApp(telefone, mensagem) {
+    const numeroLimpo = telefone.replace(/\D/g, "");
+    if (numeroLimpo.length < 10) return false;
+    
+    let numeroFormatado = numeroLimpo;
+    if (numeroFormatado.length === 10) {
+        numeroFormatado = numeroFormatado.substring(0, 2) + '9' + numeroFormatado.substring(2);
+    }
+    
+    const url = `https://wa.me/55${numeroFormatado}?text=${encodeURIComponent(mensagem)}`;
+    window.open(url, '_blank');
+    return true;
+}
+
 function enviarMensagemConfirmacaoGratuita(agendamento) {
     const telefone = agendamento.telefone || agendamento.whatsapp;
     if (!telefone) return false;
@@ -282,25 +291,15 @@ function enviarMensagemConfirmacaoGratuita(agendamento) {
         `• Valor: *GRATUITO* 🎉\n\n` +
         `⚠️ *Importante:*\n` +
         `⏰ Chegue com 10 minutos de antecedência.\n` +
-        `${tipoAtendimento === 'Online' ? '🔗 O link da videochamada será enviado 15 minutos antes do horário.' : '📍 Endereço: Eco Medical Sul - R. Hercílio Alves de Souza, 108 - Bancários, João Pessoa - PB, 58051-290'}\n\n` +
+        `${tipoAtendimento === 'Online' ? '🔗 O link da videochamada será enviado 15 minutos antes do horário.' : '📍 Endereço: Eco Medical Sul - R. Hercílio Alves de Souza, 108 - Bancários, João Pessoa - PB'}\n\n` +
         `✨ *InêsRaquel* ✨\n` +
         `Cuidando da sua saúde com carinho e dedicação 💚`;
 
-    const numeroLimpo = telefone.replace(/\D/g, "");
-    if (numeroLimpo.length < 10) return false;
-    
-    let numeroFormatado = numeroLimpo;
-    if (numeroFormatado.length === 10) {
-        numeroFormatado = numeroFormatado.substring(0, 2) + '9' + numeroFormatado.substring(2);
-    }
-    
-    const url = `https://wa.me/55${numeroFormatado}?text=${encodeURIComponent(mensagem)}`;
-    window.open(url, '_blank');
-    return true;
+    return enviarWhatsApp(telefone, mensagem);
 }
 
 /* ===========================
-   LOGICA DE HORÁRIOS (COM TRATAMENTO DE ERRO)
+   HORÁRIOS
 =========================== */
 async function atualizarHorarios() {
     const data = dataInput.value;
@@ -325,7 +324,6 @@ async function atualizarHorarios() {
     }
 
     try {
-        // ✅ CORREÇÃO: Query mais simples primeiro, sem índice complexo
         const agendamentosRef = collection(db, "agendamentos");
         const q = query(
             agendamentosRef, 
@@ -338,26 +336,21 @@ async function atualizarHorarios() {
         snapshot.forEach(doc => {
             const agendamento = doc.data();
             const status = agendamento.status || '';
-            // Apenas horários confirmados ou aguardando pagamento são considerados ocupados
             if (agendamento.horario && (status === 'confirmado' || status === 'aguardando_pagamento')) {
                 ocupados.push(agendamento.horario);
             }
         });
         
-        console.log("✅ Horários disponíveis para", profissional, "- Ocupados:", ocupados);
         renderizarHorarios(ocupados, data);
         
     } catch (error) {
         console.error("❌ Erro ao buscar horários:", error);
-        
-        // Mostrar erro amigável para o cliente
         horariosDiv.innerHTML = `
             <div class="aviso-campos erro">
                 <i class="fa-solid fa-circle-exclamation"></i>
-                <p>Erro ao carregar horários. Por favor, recarregue a página e tente novamente.</p>
-                <p style="font-size: 0.75rem; margin-top: 8px;">Código do erro: ${error.message || 'Desconhecido'}</p>
+                <p>Erro ao carregar horários. Recarregue a página.</p>
                 <button onclick="location.reload()" style="margin-top: 12px; padding: 8px 16px; background: #10b981; border: none; border-radius: 8px; color: white; cursor: pointer;">
-                    <i class="fa-solid fa-rotate"></i> Recarregar página
+                    <i class="fa-solid fa-rotate"></i> Recarregar
                 </button>
             </div>
         `;
@@ -389,40 +382,26 @@ function renderizarHorarios(ocupados = [], dataSelecionada) {
     `;
     
     infoHeader.innerHTML = `
-        <div style="display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap;">
+        <div style="display: flex; align-items: center; justify-content: center; gap: 12px;">
             <span style="font-size: 2rem;">${tipoIcone}</span>
             <div>
-                <h3 style="margin: 0; color: ${corDestaque}; font-size: 1.1rem; font-weight: 700;">
-                    Atendimento ${tipoNome}
-                </h3>
-                <p style="margin: 4px 0 0 0; font-size: 0.85rem; color: #475569;">
-                    ${infoAtendimento.mensagem} - ${nomeDia}
-                </p>
+                <h3 style="margin: 0; color: ${corDestaque};">Atendimento ${tipoNome}</h3>
+                <p style="margin: 4px 0 0 0; font-size: 0.85rem;">${infoAtendimento.mensagem} - ${nomeDia}</p>
             </div>
         </div>
     `;
     horariosDiv.appendChild(infoHeader);
     
     if (horariosDoDia.length === 0) {
-        const aviso = document.createElement('div');
-        aviso.className = 'aviso-campos';
-        aviso.innerHTML = `
-            <i class="fa-solid fa-calendar-day"></i>
-            <p>Nenhum horário disponível para este dia.</p>
-        `;
-        horariosDiv.appendChild(aviso);
+        horariosDiv.innerHTML += `<div class="aviso-campos"><i class="fa-solid fa-calendar-day"></i><p>Nenhum horário disponível para este dia.</p></div>`;
         return;
     }
     
     const containerBotoes = document.createElement('div');
     containerBotoes.className = 'botoes-horarios';
     
-    let temHorariosDisponiveis = false;
-    
     horariosDoDia.forEach(hora => {
         const isOcupado = ocupados.includes(hora);
-        if (!isOcupado) temHorariosDisponiveis = true;
-        
         const btn = document.createElement("button");
         btn.type = "button";
         btn.className = `horario-btn ${isOcupado ? 'indisponivel' : ''}`;
@@ -430,68 +409,22 @@ function renderizarHorarios(ocupados = [], dataSelecionada) {
         
         if (isOcupado) {
             btn.disabled = true;
-            btn.title = "Horário já reservado";
         } else {
-            btn.onclick = (e) => {
-                e.preventDefault();
+            btn.onclick = () => {
                 document.querySelectorAll(".horario-btn").forEach(b => b.classList.remove("selecionado"));
                 btn.classList.add("selecionado");
-                if (horarioHidden) horarioHidden.value = hora;
-                if (tipoAtendimentoHidden) tipoAtendimentoHidden.value = tipoAtendimento === "presencial" ? "Presencial" : "Online";
-                console.log("✅ Horário selecionado:", hora, "Tipo:", tipoAtendimento);
+                horarioHidden.value = hora;
+                tipoAtendimentoHidden.value = tipoAtendimento === "presencial" ? "Presencial" : "Online";
             };
         }
         containerBotoes.appendChild(btn);
     });
     
     horariosDiv.appendChild(containerBotoes);
-    
-    if (!temHorariosDisponiveis) {
-        const aviso = document.createElement('div');
-        aviso.className = 'aviso-campos';
-        aviso.style.marginTop = '16px';
-        aviso.innerHTML = `
-            <i class="fa-solid fa-calendar-xmark"></i>
-            <p>⚠️ Nenhum horário disponível para este profissional nesta data.</p>
-            <p style="font-size: 0.75rem; margin-top: 8px;">Tente outra data ou horário.</p>
-        `;
-        horariosDiv.appendChild(aviso);
-    }
-    
-    const infoComplementar = document.createElement('div');
-    infoComplementar.style.cssText = `
-        margin-top: 20px;
-        padding: 12px;
-        background: #f8fafc;
-        border-radius: 16px;
-        font-size: 0.75rem;
-        color: #475569;
-        text-align: center;
-        border: 1px solid #e2e8f0;
-    `;
-    
-    if (tipoAtendimento === "presencial") {
-        infoComplementar.innerHTML = `
-            <i class="fa-solid fa-location-dot" style="color: #7c3aed; margin-right: 6px;"></i> 
-            <strong>Atendimento Presencial:</strong> Eco Medical Sul - R. Hercílio Alves de Souza, 108 - Bancários, João Pessoa - PB
-            <br>
-            <i class="fa-regular fa-clock"></i> Horário de funcionamento aos sábados: 14:00 às 18:00
-        `;
-    } else {
-        infoComplementar.innerHTML = `
-            <i class="fa-solid fa-video" style="color: #10b981; margin-right: 6px;"></i> 
-            <strong>Atendimento Online:</strong> Você receberá o link da videochamada 15 minutos antes do horário agendado
-            <br>
-            <i class="fa-brands fa-whatsapp" style="margin-right: 4px;"></i> O link será enviado por WhatsApp
-            <br>
-            <i class="fa-regular fa-clock"></i> Horário de funcionamento (segunda a sexta): 14:00, 15:00 e 16:00
-        `;
-    }
-    horariosDiv.appendChild(infoComplementar);
 }
 
 /* ===========================
-   ENVIO DO FORMULÁRIO
+   ENVIO DO FORMULÁRIO (SEM E-MAIL)
 =========================== */
 if (form) {
     form.addEventListener("submit", async (e) => {
@@ -499,6 +432,7 @@ if (form) {
 
         const nome = nomeInput?.value.trim();
         const telefone = telefoneInput?.value.trim();
+        const email = emailInput?.value.trim();
         const servico = servicoSelect?.value;
         const profissional = profissionalSelect?.value;
         const data = dataInput?.value;
@@ -507,8 +441,8 @@ if (form) {
         
         let finalTipoAtendimento = tipoAtendimento;
         if (!finalTipoAtendimento && data) {
-            const infoAtendimento = getInfoAtendimentoPorDia(data);
-            finalTipoAtendimento = infoAtendimento.tipo === "presencial" ? "Presencial" : "Online";
+            const info = getInfoAtendimentoPorDia(data);
+            finalTipoAtendimento = info.tipo === "presencial" ? "Presencial" : "Online";
         }
 
         if (!nome || !telefone || !servico || !profissional || !data || !horario) {
@@ -517,11 +451,9 @@ if (form) {
         }
 
         const submitBtn = form.querySelector('button[type="submit"]');
-        if (submitBtn) {
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processando...';
-        }
-        if (loadingDiv) loadingDiv.style.display = "block";
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processando...';
+        loadingDiv.style.display = "block";
 
         const opcaoSelecionada = servicoSelect.options[servicoSelect.selectedIndex];
         const servicoTexto = opcaoSelecionada?.text || servico;
@@ -533,6 +465,7 @@ if (form) {
             cliente: nome,
             telefone: telefone,
             whatsapp: telefone,
+            email: email || null,
             servico: servico,
             servicoNome: servicoTexto,
             profissional: profissional,
@@ -552,14 +485,16 @@ if (form) {
             const agendamentoId = docRef.id;
             console.log("✅ Agendamento salvo! ID:", agendamentoId);
             
+            // ⚠️ APENAS PARA PLANOS GRATUITOS: Enviar WhatsApp (sem e-mail)
             if (ehGratuito) {
-                mostrarMensagem("✅ Agendamento confirmado! Redirecionando...", "sucesso");
                 enviarMensagemConfirmacaoGratuita(dadosAgendamento);
+                mostrarMensagem("✅ Agendamento confirmado! Redirecionando...", "sucesso");
                 
                 setTimeout(() => {
                     window.location.href = `agendamento-confirmado.html`;
-                }, 1500);
+                }, 2000);
             } else {
+                // Para planos pagos: apenas redireciona para pagamento (sem WhatsApp, sem e-mail)
                 mostrarMensagem("✅ Agendamento pré-reservado! Redirecionando para pagamento...", "sucesso");
                 
                 setTimeout(() => {
@@ -569,26 +504,24 @@ if (form) {
             
         } catch (error) {
             console.error("❌ Erro ao processar:", error);
-            mostrarMensagem("❌ Erro ao processar seu agendamento. Tente novamente em alguns instantes.", "erro");
+            mostrarMensagem("❌ Erro ao processar seu agendamento. Tente novamente.", "erro");
         } finally {
-            if (submitBtn) {
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = '<i class="fa-solid fa-check-circle"></i> Confirmar Agendamento';
-            }
-            if (loadingDiv) loadingDiv.style.display = "none";
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fa-solid fa-check-circle"></i> Confirmar Agendamento';
+            loadingDiv.style.display = "none";
         }
     });
 }
 
-// Eventos de Input
+// Eventos
 if (nomeInput) nomeInput.addEventListener('input', verificarCamposPreenchidos);
 if (servicoSelect) servicoSelect.addEventListener('change', verificarCamposPreenchidos);
 if (profissionalSelect) profissionalSelect.addEventListener('change', verificarCamposPreenchidos);
 
 if (dataInput) {
     dataInput.addEventListener('change', () => {
-        if (horarioHidden) horarioHidden.value = '';
-        if (tipoAtendimentoHidden) tipoAtendimentoHidden.value = '';
+        horarioHidden.value = '';
+        tipoAtendimentoHidden.value = '';
         verificarCamposPreenchidos();
     });
 }

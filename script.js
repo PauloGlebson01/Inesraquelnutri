@@ -3,13 +3,13 @@ import { getFirestore, collection, getDocs, query, orderBy } from "https://www.g
 import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAmodWGagSV-yco1FQ1-U81Xhd-y4NsE3s",
-  authDomain: "ines-raquel-softclick-nutri.firebaseapp.com",
-  projectId: "ines-raquel-softclick-nutri",
-  storageBucket: "ines-raquel-softclick-nutri.firebasestorage.app",
-  messagingSenderId: "284677746064",
-  appId: "1:284677746064:web:4daac55dd6b2491dbd9715",
-  measurementId: "G-5C0YC43V2G"
+  apiKey: "AIzaSyAtpeuw5e9IgctiZh2UROXMEk-10BcUHAI",
+  authDomain: "nutri-agendamentos.firebaseapp.com",
+  projectId: "nutri-agendamentos",
+  storageBucket: "nutri-agendamentos.firebasestorage.app",
+  messagingSenderId: "192742643803",
+  appId: "1:192742643803:web:4cf93b5fdcbfa8949d077e",
+  measurementId: "G-CNQ26DG1N0"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -872,7 +872,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         try {
             new QRCode(qrContainer, {
-                text: "https://inesraquelnutri.vercel.app",
+                text: "https://pauloglebson01.github.io/Inesraquelnutri/",
                 width: 256,
                 height: 256,
                 colorDark: "#10b981",

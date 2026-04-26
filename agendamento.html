@@ -8,6 +8,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <!-- EmailJS SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <!-- CSS Principal -->
     <link rel="stylesheet" href="agendamento.css">
     <link rel="icon" type="image/png" href="./assets/Nutri-icon.png">
@@ -28,6 +30,12 @@
         <div class="input-group">
             <label for="telefone"><i class="fa-brands fa-whatsapp"></i> WhatsApp para Contato</label>
             <input type="tel" id="telefone" placeholder="(83) 99999-9999" autocomplete="tel" required>
+        </div>
+
+        <div class="input-group">
+            <label for="email"><i class="fa-solid fa-envelope"></i> E-mail (Obrigatório)</label>
+            <input type="email" id="email" placeholder="seu@email.com">
+            <small style="color: #64748b; display: block; margin-top: 4px;">📧 Ao informar seu e-mail, você receberá a confirmação também por e-mail</small>
         </div>
 
         <div class="input-group">
