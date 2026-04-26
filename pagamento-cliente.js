@@ -20,13 +20,13 @@ import {
    CONFIGURAÇÃO FIREBASE
 =========================== */
 const firebaseConfig = {
-  apiKey: "AIzaSyAtpeuw5e9IgctiZh2UROXMEk-10BcUHAI",
-  authDomain: "nutri-agendamentos.firebaseapp.com",
-  projectId: "nutri-agendamentos",
-  storageBucket: "nutri-agendamentos.firebasestorage.app",
-  messagingSenderId: "192742643803",
-  appId: "1:192742643803:web:4cf93b5fdcbfa8949d077e",
-  measurementId: "G-CNQ26DG1N0"
+  apiKey: "AIzaSyAmodWGagSV-yco1FQ1-U81Xhd-y4NsE3s",
+  authDomain: "ines-raquel-softclick-nutri.firebaseapp.com",
+  projectId: "ines-raquel-softclick-nutri",
+  storageBucket: "ines-raquel-softclick-nutri.firebasestorage.app",
+  messagingSenderId: "284677746064",
+  appId: "1:284677746064:web:4daac55dd6b2491dbd9715",
+  measurementId: "G-5C0YC43V2G"
 };
 
 /* ===========================
