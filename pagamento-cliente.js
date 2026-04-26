@@ -34,8 +34,8 @@ const firebaseConfig = {
 =========================== */
 const EMAILJS_CONFIG = {
     PUBLIC_KEY: 'DZF356b2qE9A0zVlS',
-    SERVICE_ID: '#',
-    TEMPLATE_ID: '#'  // Seu template ID para confirmação
+    SERVICE_ID: 'service_3dpf5ng',
+    TEMPLATE_ID: 'template_xixo35p'  // Seu template ID para confirmação
 };
 
 const app = initializeApp(firebaseConfig);
