@@ -9,7 +9,9 @@ import {
     query, 
     where, 
     getDocs,
-    Timestamp
+    Timestamp,
+    setDoc,      // ✅ ADICIONADO
+    doc          // ✅ ADICIONADO para referência de documento
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { 
     getAuth, 
@@ -51,15 +53,8 @@ const mensagemDiv = document.getElementById("mensagem");
 const loadingDiv = document.getElementById("loading");
 
 // HORÁRIOS SEPARADOS POR TIPO DE ATENDIMENTO
-// Segunda a Sexta - Atendimento Online (3 horários centralizados)
-const horariosOnlineSemana = [
-    "14:00", "15:00", "16:00"
-];
-
-// Sábado - Atendimento Presencial
-const horariosPresencialSabado = [
-    "14:00", "15:00", "16:00", "17:00", "18:00"
-];
+const horariosOnlineSemana = ["14:00", "15:00", "16:00"];
+const horariosPresencialSabado = ["14:00", "15:00", "16:00", "17:00", "18:00"];
 
 let camposPreenchidos = { 
     nome: false, 
@@ -72,49 +67,54 @@ let usuarioAutenticado = false;
 let autenticacaoTentada = false;
 
 /* ===========================
-   FUNÇÃO PARA FECHAR O CALENDÁRIO AUTOMATICAMENTE
+   FUNÇÃO PARA MOSTRAR ERROS VISÍVEIS AO CLIENTE
 =========================== */
-function fecharCalendarioAutomaticamente() {
-    if (!dataInput) return;
-    
-    // Forçar o blur (perder foco) para fechar o calendário
-    dataInput.blur();
-    
-    // Para navegadores baseados em WebKit (Chrome, Edge, Safari)
-    // Disparar evento de blur manualmente
-    const blurEvent = new Event('blur', { bubbles: true });
-    dataInput.dispatchEvent(blurEvent);
-    
-    // Método alternativo: simular clique fora
-    document.body.click();
-    
-    console.log("Calendário fechado automaticamente após seleção da data");
+function mostrarErroCliente(mensagem) {
+    if (!horariosDiv) return;
+    horariosDiv.innerHTML = `
+        <div class="aviso-campos erro" style="border-color: #ef4444;">
+            <i class="fa-solid fa-circle-exclamation" style="color: #ef4444;"></i>
+            <p style="color: #ef4444;">${mensagem}</p>
+            <button onclick="location.reload()" style="margin-top: 12px; padding: 8px 16px; background: #10b981; border: none; border-radius: 8px; color: white; cursor: pointer;">
+                <i class="fa-solid fa-rotate"></i> Tentar novamente
+            </button>
+        </div>
+    `;
 }
 
 /* ===========================
-   AUTENTICAÇÃO ANÔNIMA
+   AUTENTICAÇÃO ANÔNIMA COM RETRY
 =========================== */
-function autenticar() {
+function autenticar(tentativa = 1) {
+    const maxTentativas = 3;
+    
     signInAnonymously(auth)
         .then(() => {
             usuarioAutenticado = true;
             autenticacaoTentada = true;
-            console.log("Autenticado com sucesso!");
+            console.log("✅ Autenticado com sucesso!");
             verificarCamposPreenchidos();
         })
         .catch((error) => {
-            console.error("Erro na autenticação:", error);
-            autenticacaoTentada = true;
-            verificarCamposPreenchidos();
+            console.error(`❌ Erro na autenticação (tentativa ${tentativa}/${maxTentativas}):`, error);
+            
+            if (tentativa < maxTentativas) {
+                // Aguarda 1 segundo e tenta novamente
+                setTimeout(() => autenticar(tentativa + 1), 1000);
+            } else {
+                autenticacaoTentada = true;
+                mostrarErroCliente("⚠️ Problemas de conexão. Verifique sua internet e recarregue a página.");
+            }
         });
 }
 
+// Inicia autenticação
 autenticar();
 
 onAuthStateChanged(auth, (user) => {
     if (user) {
         usuarioAutenticado = true;
-        console.log("Usuário autenticado:", user.uid);
+        console.log("✅ Usuário autenticado:", user.uid);
         verificarCamposPreenchidos();
     } else if (!autenticacaoTentada) {
         autenticar();
@@ -139,7 +139,6 @@ if (telefoneInput) {
     });
 }
 
-// Função para verificar o dia da semana ignorando fuso horário
 function getDiaSemana(dataStr) {
     if (!dataStr) return null;
     const [ano, mes, dia] = dataStr.split('-').map(Number);
@@ -147,20 +146,15 @@ function getDiaSemana(dataStr) {
     return dataUTC.getUTCDay();
 }
 
-// Função para obter o nome do dia da semana
 function getNomeDiaSemana(dataStr) {
     const dias = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
     const diaSemana = getDiaSemana(dataStr);
     return dias[diaSemana];
 }
 
-// Função para obter os horários e tipo de atendimento baseado no dia
 function getInfoAtendimentoPorDia(dataStr) {
     const diaSemana = getDiaSemana(dataStr);
     
-    console.log("Data selecionada:", dataStr, "Dia da semana (0=Domingo,6=Sábado):", diaSemana);
-    
-    // Domingo (0) - Sem atendimento
     if (diaSemana === 0) {
         return {
             temAtendimento: false,
@@ -169,7 +163,6 @@ function getInfoAtendimentoPorDia(dataStr) {
             mensagem: "📅 Não realizamos atendimentos aos domingos. Por favor, escolha outro dia."
         };
     }
-    // Sábado (6) - Atendimento Presencial
     else if (diaSemana === 6) {
         return {
             temAtendimento: true,
@@ -182,7 +175,6 @@ function getInfoAtendimentoPorDia(dataStr) {
             mensagem: "Atendimento Presencial no consultório"
         };
     }
-    // Segunda a Sexta (1, 2, 3, 4, 5) - Atendimento Online com 3 horários
     else if (diaSemana >= 1 && diaSemana <= 5) {
         return {
             temAtendimento: true,
@@ -218,13 +210,11 @@ function verificarCamposPreenchidos() {
     camposPreenchidos.profissional = profissional && profissional !== "";
     camposPreenchidos.data = data && data !== "";
     
-    console.log("Campos preenchidos:", camposPreenchidos);
-    
     const todosPreenchidos = Object.values(camposPreenchidos).every(v => v === true);
     
     if (todosPreenchidos && data && usuarioAutenticado) {
         atualizarHorarios();
-    } else if (horariosDiv && !todosPreenchidos) {
+    } else if (horariosDiv && !todosPreenchidos && usuarioAutenticado) {
         mostrarMensagemCampos();
     }
     return todosPreenchidos;
@@ -310,7 +300,7 @@ function enviarMensagemConfirmacaoGratuita(agendamento) {
 }
 
 /* ===========================
-   LOGICA DE HORÁRIOS
+   LOGICA DE HORÁRIOS (COM TRATAMENTO DE ERRO)
 =========================== */
 async function atualizarHorarios() {
     const data = dataInput.value;
@@ -330,46 +320,47 @@ async function atualizarHorarios() {
         return;
     }
     
-    console.log("Atualizando horários para data:", data, "profissional:", profissional, "tipo:", infoAtendimento.tipo);
-    
     if (horariosDiv) {
         horariosDiv.innerHTML = '<div class="loading-horarios"><i class="fas fa-spinner fa-spin"></i> Verificando disponibilidade...</div>';
     }
 
     try {
+        // ✅ CORREÇÃO: Query mais simples primeiro, sem índice complexo
         const agendamentosRef = collection(db, "agendamentos");
         const q = query(
             agendamentosRef, 
             where("data", "==", data),
-            where("profissional", "==", profissional),
-            where("status", "in", ["confirmado", "aguardando_pagamento"])
+            where("profissional", "==", profissional)
         );
         const snapshot = await getDocs(q);
         
         const ocupados = [];
         snapshot.forEach(doc => {
             const agendamento = doc.data();
-            if (agendamento.horario) {
+            const status = agendamento.status || '';
+            // Apenas horários confirmados ou aguardando pagamento são considerados ocupados
+            if (agendamento.horario && (status === 'confirmado' || status === 'aguardando_pagamento')) {
                 ocupados.push(agendamento.horario);
             }
         });
         
-        console.log("Horários ocupados para", profissional, ":", ocupados);
+        console.log("✅ Horários disponíveis para", profissional, "- Ocupados:", ocupados);
         renderizarHorarios(ocupados, data);
         
     } catch (error) {
-        console.error("Erro ao buscar horários:", error);
-        if (horariosDiv) {
-            horariosDiv.innerHTML = `
-                <div class="aviso-campos erro">
-                    <i class="fa-solid fa-circle-exclamation"></i>
-                    <p>Erro ao carregar horários. Tente novamente.</p>
-                    <button onclick="location.reload()" style="margin-top: 10px; padding: 5px 10px; background: #6366f1; border: none; border-radius: 5px; color: white; cursor: pointer;">
-                        Tentar novamente
-                    </button>
-                </div>
-            `;
-        }
+        console.error("❌ Erro ao buscar horários:", error);
+        
+        // Mostrar erro amigável para o cliente
+        horariosDiv.innerHTML = `
+            <div class="aviso-campos erro">
+                <i class="fa-solid fa-circle-exclamation"></i>
+                <p>Erro ao carregar horários. Por favor, recarregue a página e tente novamente.</p>
+                <p style="font-size: 0.75rem; margin-top: 8px;">Código do erro: ${error.message || 'Desconhecido'}</p>
+                <button onclick="location.reload()" style="margin-top: 12px; padding: 8px 16px; background: #10b981; border: none; border-radius: 8px; color: white; cursor: pointer;">
+                    <i class="fa-solid fa-rotate"></i> Recarregar página
+                </button>
+            </div>
+        `;
     }
 }
 
@@ -447,7 +438,7 @@ function renderizarHorarios(ocupados = [], dataSelecionada) {
                 btn.classList.add("selecionado");
                 if (horarioHidden) horarioHidden.value = hora;
                 if (tipoAtendimentoHidden) tipoAtendimentoHidden.value = tipoAtendimento === "presencial" ? "Presencial" : "Online";
-                console.log("Horário selecionado:", hora, "Tipo:", tipoAtendimento);
+                console.log("✅ Horário selecionado:", hora, "Tipo:", tipoAtendimento);
             };
         }
         containerBotoes.appendChild(btn);
@@ -461,7 +452,8 @@ function renderizarHorarios(ocupados = [], dataSelecionada) {
         aviso.style.marginTop = '16px';
         aviso.innerHTML = `
             <i class="fa-solid fa-calendar-xmark"></i>
-            <p>Nenhum horário disponível para este profissional nesta data. Por favor, escolha outra data ou profissional.</p>
+            <p>⚠️ Nenhum horário disponível para este profissional nesta data.</p>
+            <p style="font-size: 0.75rem; margin-top: 8px;">Tente outra data ou horário.</p>
         `;
         horariosDiv.appendChild(aviso);
     }
@@ -519,8 +511,6 @@ if (form) {
             finalTipoAtendimento = infoAtendimento.tipo === "presencial" ? "Presencial" : "Online";
         }
 
-        console.log("Dados do formulário:", { nome, telefone, servico, profissional, data, horario, tipoAtendimento: finalTipoAtendimento });
-
         if (!nome || !telefone || !servico || !profissional || !data || !horario) {
             mostrarMensagem("⚠️ Preencha todos os campos e escolha um horário.", "erro");
             return;
@@ -560,7 +550,7 @@ if (form) {
         try {
             const docRef = await addDoc(collection(db, "agendamentos"), dadosAgendamento);
             const agendamentoId = docRef.id;
-            console.log("Agendamento salvo com sucesso! ID:", agendamentoId);
+            console.log("✅ Agendamento salvo! ID:", agendamentoId);
             
             if (ehGratuito) {
                 mostrarMensagem("✅ Agendamento confirmado! Redirecionando...", "sucesso");
@@ -578,8 +568,8 @@ if (form) {
             }
             
         } catch (error) {
-            console.error("Erro ao processar:", error);
-            mostrarMensagem("❌ Erro ao processar. Tente novamente.", "erro");
+            console.error("❌ Erro ao processar:", error);
+            mostrarMensagem("❌ Erro ao processar seu agendamento. Tente novamente em alguns instantes.", "erro");
         } finally {
             if (submitBtn) {
                 submitBtn.disabled = false;
@@ -595,31 +585,11 @@ if (nomeInput) nomeInput.addEventListener('input', verificarCamposPreenchidos);
 if (servicoSelect) servicoSelect.addEventListener('change', verificarCamposPreenchidos);
 if (profissionalSelect) profissionalSelect.addEventListener('change', verificarCamposPreenchidos);
 
-// EVENTO PRINCIPAL PARA FECHAR O CALENDÁRIO AUTOMATICAMENTE
 if (dataInput) {
-    // Quando o usuário clica em uma data (change é disparado quando seleciona)
     dataInput.addEventListener('change', () => {
-        console.log("Data selecionada:", dataInput.value);
-        
-        // Resetar horário selecionado quando mudar a data
         if (horarioHidden) horarioHidden.value = '';
         if (tipoAtendimentoHidden) tipoAtendimentoHidden.value = '';
-        
-        // Fechar o calendário automaticamente
-        fecharCalendarioAutomaticamente();
-        
-        // Verificar campos preenchidos
         verificarCamposPreenchidos();
-    });
-    
-    // Para navegadores móveis que usam 'blur' de forma diferente
-    dataInput.addEventListener('blur', () => {
-        // Pequeno delay para garantir que a seleção foi concluída
-        setTimeout(() => {
-            if (dataInput.value) {
-                verificarCamposPreenchidos();
-            }
-        }, 100);
     });
 }
 
@@ -627,5 +597,5 @@ configurarDataMinima();
 
 setTimeout(() => {
     verificarCamposPreenchidos();
-    console.log("Verificação inicial executada");
+    console.log("✅ Verificação inicial executada");
 }, 1000);
