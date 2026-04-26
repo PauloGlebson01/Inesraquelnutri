@@ -397,7 +397,7 @@ function enviarWhatsAppConfirmacao() {
         `${metodoSelecionado === 'dinheiro' ? '💡 Lembre-se de trazer o valor exato em dinheiro!\n\n' : ''}` +
         `✨ *Inês Raquel - Nutrição* ✨\n` +
         `Cuidando da sua saúde com carinho e dedicação 💚\n\n` +
-        `Para remarcar ou cancelar, entre em contato pelo WhatsApp: (83) 99186-3520`;
+        `Para remarcar ou cancelar, entre em contato pelo WhatsApp: (83) 99115-0115`;
 
     const url = `https://wa.me/55${num}?text=${encodeURIComponent(mensagem)}`;
     
