@@ -21,6 +21,81 @@ let produtosCache = [];
 let resultadosCache = [];
 let autenticado = false;
 
+// Dados de fallback - PLANOS PADRÃO (sempre disponíveis caso Firebase falhe)
+const PLANOS_FALLBACK = [
+    {
+        id: 'fallback_1',
+        nome: 'Retorno - Consulta de Acompanhamento',
+        categoria: 'Acompanhamento',
+        duracao: 45,
+        preco: 0,
+        descricao: 'Consulta de retorno para acompanhamento do tratamento nutricional. (Gratuito)'
+    },
+    {
+        id: 'fallback_2',
+        nome: 'Acompanhamento Mensal',
+        categoria: 'Acompanhamento',
+        duracao: 60,
+        preco: 180,
+        descricao: 'Acompanhamento nutricional completo por 30 dias com 4 consultas.'
+    },
+    {
+        id: 'fallback_3',
+        nome: 'Acompanhamento Trimestral',
+        categoria: 'Acompanhamento',
+        duracao: 60,
+        preco: 500,
+        descricao: 'Plano de 3 meses com acompanhamento contínuo e reavaliações periódicas.'
+    },
+    {
+        id: 'fallback_4',
+        nome: 'Acompanhamento Semestral',
+        categoria: 'Acompanhamento',
+        duracao: 60,
+        preco: 1000,
+        descricao: 'Plano de 6 meses com suporte completo e evolução detalhada.'
+    },
+    {
+        id: 'fallback_5',
+        nome: 'Consultoria Online',
+        categoria: 'Consultoria',
+        duracao: 50,
+        preco: 140,
+        descricao: 'Consultoria online personalizada com plano alimentar digital.'
+    }
+];
+
+// Dados de fallback - PRODUTOS PADRÃO
+const PRODUTOS_FALLBACK = [
+    {
+        id: 'fallback_prod_1',
+        nome: 'Whey Protein Concentrado',
+        categoria: 'Suplementos',
+        preco: 89.90,
+        descricao: 'Whey Protein de alta qualidade para recuperação muscular.',
+        fornecedor: 'Growth Supplements',
+        linkCompra: '#'
+    },
+    {
+        id: 'fallback_prod_2',
+        nome: 'Creatina Monohidratada',
+        categoria: 'Suplementos',
+        preco: 49.90,
+        descricao: 'Creatina pura para aumento de força e performance.',
+        fornecedor: 'Integralmedica',
+        linkCompra: '#'
+    },
+    {
+        id: 'fallback_prod_3',
+        nome: 'Multivitamínico Completo',
+        categoria: 'Vitaminas',
+        preco: 65.00,
+        descricao: 'Complexo vitamínico para suplementação diária.',
+        fornecedor: 'Now Foods',
+        linkCompra: '#'
+    }
+];
+
 // Variáveis do carrossel
 let imagensAtuais = [];
 let indiceAtual = 0;
@@ -57,6 +132,7 @@ function getCategoriaIcon(categoria) {
         'Infantil': '👶',
         'Vegetariana': '🥬',
         'Saúde': '❤️',
+        'Consultoria': '💻',
         'Suplementos': '💊',
         'Vitaminas': '💊',
         'Alimentos Funcionais': '🥑',
@@ -247,15 +323,77 @@ window.fecharFullscreen = fecharFullscreen;
 window.proximoFullscreen = proximoFullscreen;
 window.anteriorFullscreen = anteriorFullscreen;
 
+// ==================== RENDERIZAÇÃO DE PLANOS ====================
+function renderizarPlanosNaLista(planos, planosLista) {
+    if (!planosLista) return;
+    
+    if (planos.length === 0) {
+        planosLista.innerHTML = `
+            <div class="empty-servicos">
+                <i class="fa-solid fa-apple-whole"></i>
+                <p>Nenhum plano disponível no momento.</p>
+                <p style="font-size: 0.9rem; margin-top: 8px;">Entre em contato para mais informações!</p>
+            </div>
+        `;
+        return;
+    }
+    
+    let planosHTML = '';
+    
+    planos.forEach((plano, index) => {
+        const categoriaIcon = getCategoriaIcon(plano.categoria);
+        const duracaoFormatada = formatarDuracao(plano.duracao);
+        const precoDisplay = (plano.preco === 0 || plano.preco === '0') ? 'GRATUITO' : formatarMoeda(plano.preco || 0);
+        
+        planosHTML += `
+            <div class="servico-card" data-index="${index}" data-tipo="plano">
+                <div class="servico-card-icon">
+                    <i class="fa-solid fa-apple-whole"></i>
+                </div>
+                <div class="servico-card-info">
+                    <h3>${escapeHtml(plano.nome || 'Plano')}</h3>
+                    <div class="servico-card-meta">
+                        <span class="servico-card-categoria">
+                            ${categoriaIcon} ${escapeHtml(plano.categoria || 'Geral')}
+                        </span>
+                        <span class="servico-card-duracao">
+                            <i class="fa-regular fa-clock"></i> ${duracaoFormatada}
+                        </span>
+                    </div>
+                    <div class="servico-card-preco">
+                        ${precoDisplay}
+                    </div>
+                    ${plano.descricao ? `
+                        <p class="servico-card-descricao">${escapeHtml(plano.descricao.substring(0, 80))}${plano.descricao.length > 80 ? '...' : ''}</p>
+                    ` : ''}
+                </div>
+                <div class="servico-card-action">
+                    <i class="fa-solid fa-chevron-right"></i>
+                </div>
+            </div>
+        `;
+    });
+    
+    planosLista.innerHTML = planosHTML;
+    
+    // Adicionar eventos de clique
+    document.querySelectorAll('.servico-card[data-tipo="plano"]').forEach(card => {
+        card.addEventListener('click', (e) => {
+            const index = parseInt(card.getAttribute('data-index'));
+            if (!isNaN(index) && planos[index]) {
+                abrirModalDetalhePlano(planos[index]);
+            }
+        });
+    });
+}
+
 // ==================== PLANOS ====================
 function abrirModalPlanos() {
     const modal = document.getElementById('servicosModal');
     if (modal) {
         modal.classList.add('active');
         document.body.style.overflow = 'hidden';
-        if (autenticado) {
-            carregarPlanos();
-        }
+        carregarPlanos();
     }
 }
 
@@ -274,12 +412,13 @@ function abrirModalDetalhePlano(plano) {
     document.getElementById('detalheServicoNome').textContent = plano.nome || 'Plano';
     document.getElementById('detalheServicoDuracao').textContent = formatarDuracao(plano.duracao);
     document.getElementById('detalheServicoCategoria').textContent = plano.categoria || 'Geral';
-    document.getElementById('detalheServicoPreco').textContent = formatarMoeda(plano.preco || 0);
+    const precoDisplay = (plano.preco === 0 || plano.preco === '0') ? 'GRATUITO' : formatarMoeda(plano.preco || 0);
+    document.getElementById('detalheServicoPreco').textContent = precoDisplay;
     document.getElementById('detalheServicoDescricao').textContent = plano.descricao || 'Sem descrição disponível.';
     
     const btnAgendar = document.getElementById('btnAgendarDetalhe');
     if (btnAgendar) {
-        btnAgendar.href = `agendamento.html?servico=${encodeURIComponent(plano.nome)}&preco=${plano.preco}`;
+        btnAgendar.href = `agendamento.html?servico=${encodeURIComponent(plano.nome)}&preco=${plano.preco || 0}`;
     }
     
     modal.classList.add('active');
@@ -300,94 +439,108 @@ async function carregarPlanos() {
     
     console.log("Carregando planos...");
     
+    // Mostrar loading
+    planosLista.innerHTML = `
+        <div class="loading-servicos">
+            <i class="fa-solid fa-spinner fa-spin"></i>
+            <p>Carregando planos...</p>
+        </div>
+    `;
+    
     try {
+        // Tentar carregar do Firebase
         const q = query(collection(db, "servicos"), orderBy("nome", "asc"));
         const querySnapshot = await getDocs(q);
         
-        if (querySnapshot.empty) {
-            planosLista.innerHTML = `
-                <div class="empty-servicos">
-                    <i class="fa-solid fa-apple-whole"></i>
-                    <p>Nenhum plano cadastrado ainda.</p>
-                    <p style="font-size: 0.9rem; margin-top: 8px;">Em breve novos planos disponíveis!</p>
-                </div>
-            `;
+        if (!querySnapshot.empty) {
+            // Usar dados do Firebase
+            planosCache = [];
+            querySnapshot.forEach(doc => {
+                planosCache.push({ id: doc.id, ...doc.data() });
+            });
+            console.log(`✅ ${planosCache.length} planos carregados do Firebase`);
+            renderizarPlanosNaLista(planosCache, planosLista);
             return;
         }
         
-        planosCache = [];
-        let planosHTML = '';
-        
-        querySnapshot.forEach(doc => {
-            const plano = doc.data();
-            plano.id = doc.id;
-            planosCache.push(plano);
-            
-            const categoriaIcon = getCategoriaIcon(plano.categoria);
-            
-            planosHTML += `
-                <div class="servico-card" data-index="${planosCache.length - 1}" data-tipo="plano">
-                    <div class="servico-card-icon">
-                        <i class="fa-solid fa-apple-whole"></i>
-                    </div>
-                    <div class="servico-card-info">
-                        <h3>${escapeHtml(plano.nome || 'Sem nome')}</h3>
-                        <div class="servico-card-meta">
-                            <span class="servico-card-categoria">
-                                ${categoriaIcon} ${escapeHtml(plano.categoria || 'Geral')}
-                            </span>
-                            <span class="servico-card-duracao">
-                                <i class="fa-regular fa-clock"></i> ${formatarDuracao(plano.duracao)}
-                            </span>
-                        </div>
-                        <div class="servico-card-preco">
-                            ${formatarMoeda(plano.preco || 0)}
-                        </div>
-                        ${plano.descricao ? `
-                            <p class="servico-card-descricao">${escapeHtml(plano.descricao.substring(0, 80))}${plano.descricao.length > 80 ? '...' : ''}</p>
-                        ` : ''}
-                    </div>
-                    <div class="servico-card-action">
-                        <i class="fa-solid fa-chevron-right"></i>
-                    </div>
-                </div>
-            `;
-        });
-        
-        planosLista.innerHTML = planosHTML;
-        
-        document.querySelectorAll('.servico-card[data-tipo="plano"]').forEach(card => {
-            card.addEventListener('click', (e) => {
-                const index = card.getAttribute('data-index');
-                if (index !== null && planosCache[index]) {
-                    abrirModalDetalhePlano(planosCache[index]);
-                }
-            });
-        });
+        // Se Firebase estiver vazio, usar fallback
+        console.log("Firestore vazio, usando planos de fallback");
+        planosCache = PLANOS_FALLBACK;
+        renderizarPlanosNaLista(planosCache, planosLista);
         
     } catch (error) {
-        console.error("Erro ao carregar planos:", error);
-        planosLista.innerHTML = `
-            <div class="empty-servicos">
-                <i class="fa-solid fa-circle-exclamation"></i>
-                <p>Erro ao carregar planos: ${error.message}</p>
-                <button onclick="location.reload()" style="margin-top: 15px; padding: 8px 16px; background: #10b981; border: none; border-radius: 8px; color: white; cursor: pointer;">
-                    <i class="fa-solid fa-rotate"></i> Tentar novamente
-                </button>
-            </div>
-        `;
+        console.error("Erro ao carregar planos do Firebase:", error);
+        // Em caso de erro de rede/autenticação, usar fallback
+        console.log("Usando planos de fallback devido a erro");
+        planosCache = PLANOS_FALLBACK;
+        renderizarPlanosNaLista(planosCache, planosLista);
     }
 }
 
 // ==================== PRODUTOS ====================
+function renderizarProdutosNaLista(produtos, produtosLista) {
+    if (!produtosLista) return;
+    
+    if (produtos.length === 0) {
+        produtosLista.innerHTML = `
+            <div class="empty-produtos">
+                <i class="fa-solid fa-box"></i>
+                <p>Nenhum produto disponível no momento.</p>
+                <p style="font-size: 0.9rem; margin-top: 8px;">Em breve novos produtos!</p>
+            </div>
+        `;
+        return;
+    }
+    
+    let produtosHTML = '';
+    
+    produtos.forEach((produto, index) => {
+        const categoriaIcon = getCategoriaIcon(produto.categoria);
+        
+        produtosHTML += `
+            <div class="produto-card" data-index="${index}" data-tipo="produto">
+                <div class="produto-card-icon">
+                    <i class="fa-solid fa-box"></i>
+                </div>
+                <div class="produto-card-info">
+                    <h3>${escapeHtml(produto.nome || 'Produto')}</h3>
+                    <div class="produto-card-meta">
+                        <span class="produto-card-categoria">
+                            ${categoriaIcon} ${escapeHtml(produto.categoria || 'Geral')}
+                        </span>
+                    </div>
+                    <div class="produto-card-preco">
+                        ${formatarMoeda(produto.preco || 0)}
+                    </div>
+                    ${produto.descricao ? `
+                        <p class="produto-card-descricao">${escapeHtml(produto.descricao.substring(0, 80))}${produto.descricao.length > 80 ? '...' : ''}</p>
+                    ` : ''}
+                </div>
+                <div class="produto-card-action">
+                    <i class="fa-solid fa-chevron-right"></i>
+                </div>
+            </div>
+        `;
+    });
+    
+    produtosLista.innerHTML = produtosHTML;
+    
+    document.querySelectorAll('.produto-card[data-tipo="produto"]').forEach(card => {
+        card.addEventListener('click', (e) => {
+            const index = parseInt(card.getAttribute('data-index'));
+            if (!isNaN(index) && produtos[index]) {
+                abrirModalDetalheProduto(produtos[index]);
+            }
+        });
+    });
+}
+
 function abrirModalProdutos() {
     const modal = document.getElementById('produtosModal');
     if (modal) {
         modal.classList.add('active');
         document.body.style.overflow = 'hidden';
-        if (autenticado) {
-            carregarProdutos();
-        }
+        carregarProdutos();
     }
 }
 
@@ -435,79 +588,35 @@ async function carregarProdutos() {
     
     console.log("Carregando produtos...");
     
+    produtosLista.innerHTML = `
+        <div class="loading-produtos">
+            <i class="fa-solid fa-spinner fa-spin"></i>
+            <p>Carregando produtos...</p>
+        </div>
+    `;
+    
     try {
         const q = query(collection(db, "produtos"), orderBy("nome", "asc"));
         const querySnapshot = await getDocs(q);
         
-        if (querySnapshot.empty) {
-            produtosLista.innerHTML = `
-                <div class="empty-produtos">
-                    <i class="fa-solid fa-box"></i>
-                    <p>Nenhum produto cadastrado ainda.</p>
-                    <p style="font-size: 0.9rem; margin-top: 8px;">Em breve novos produtos disponíveis!</p>
-                </div>
-            `;
+        if (!querySnapshot.empty) {
+            produtosCache = [];
+            querySnapshot.forEach(doc => {
+                produtosCache.push({ id: doc.id, ...doc.data() });
+            });
+            console.log(`✅ ${produtosCache.length} produtos carregados do Firebase`);
+            renderizarProdutosNaLista(produtosCache, produtosLista);
             return;
         }
         
-        produtosCache = [];
-        let produtosHTML = '';
-        
-        querySnapshot.forEach(doc => {
-            const produto = doc.data();
-            produto.id = doc.id;
-            produtosCache.push(produto);
-            
-            const categoriaIcon = getCategoriaIcon(produto.categoria);
-            
-            produtosHTML += `
-                <div class="produto-card" data-index="${produtosCache.length - 1}" data-tipo="produto">
-                    <div class="produto-card-icon">
-                        <i class="fa-solid fa-box"></i>
-                    </div>
-                    <div class="produto-card-info">
-                        <h3>${escapeHtml(produto.nome || 'Sem nome')}</h3>
-                        <div class="produto-card-meta">
-                            <span class="produto-card-categoria">
-                                ${categoriaIcon} ${escapeHtml(produto.categoria || 'Geral')}
-                            </span>
-                        </div>
-                        <div class="produto-card-preco">
-                            ${formatarMoeda(produto.preco || 0)}
-                        </div>
-                        ${produto.descricao ? `
-                            <p class="produto-card-descricao">${escapeHtml(produto.descricao.substring(0, 80))}${produto.descricao.length > 80 ? '...' : ''}</p>
-                        ` : ''}
-                    </div>
-                    <div class="produto-card-action">
-                        <i class="fa-solid fa-chevron-right"></i>
-                    </div>
-                </div>
-            `;
-        });
-        
-        produtosLista.innerHTML = produtosHTML;
-        
-        document.querySelectorAll('.produto-card[data-tipo="produto"]').forEach(card => {
-            card.addEventListener('click', (e) => {
-                const index = card.getAttribute('data-index');
-                if (index !== null && produtosCache[index]) {
-                    abrirModalDetalheProduto(produtosCache[index]);
-                }
-            });
-        });
+        console.log("Firestore vazio, usando produtos de fallback");
+        produtosCache = PRODUTOS_FALLBACK;
+        renderizarProdutosNaLista(produtosCache, produtosLista);
         
     } catch (error) {
         console.error("Erro ao carregar produtos:", error);
-        produtosLista.innerHTML = `
-            <div class="empty-produtos">
-                <i class="fa-solid fa-circle-exclamation"></i>
-                <p>Erro ao carregar produtos: ${error.message}</p>
-                <button onclick="location.reload()" style="margin-top: 15px; padding: 8px 16px; background: #10b981; border: none; border-radius: 8px; color: white; cursor: pointer;">
-                    <i class="fa-solid fa-rotate"></i> Tentar novamente
-                </button>
-            </div>
-        `;
+        produtosCache = PRODUTOS_FALLBACK;
+        renderizarProdutosNaLista(produtosCache, produtosLista);
     }
 }
 
